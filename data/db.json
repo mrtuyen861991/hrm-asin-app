@@ -5929,7 +5929,8 @@
           "approve": true,
           "export": true
         }
-      }
+      },
+      "password": "Asin@2026"
     },
     {
       "id": "U002",
@@ -6021,7 +6022,8 @@
           "approve": false,
           "export": true
         }
-      }
+      },
+      "password": "Asin@2026"
     },
     {
       "id": "U003",
@@ -6113,7 +6115,8 @@
           "approve": false,
           "export": false
         }
-      }
+      },
+      "password": "Asin@2026"
     }
   ],
   "settings": {

@@ -1,12 +1,36 @@
 // app.js - Frontend application logic for ASIN GROUP HRM
+// -------------------------------------------------------------
+// GLOBAL FETCH INTERCEPTOR FOR AUTHENTICATION
+// -------------------------------------------------------------
+const originalFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+  const token = localStorage.getItem('hrm_auth_token');
+  options.headers = options.headers || {};
+  if (token && typeof url === 'string' && url.startsWith('/api') && !url.startsWith('/api/auth/login')) {
+    if (options.headers instanceof Headers) {
+      options.headers.set('Authorization', 'Bearer ' + token);
+    } else if (Array.isArray(options.headers)) {
+      options.headers.push(['Authorization', 'Bearer ' + token]);
+    } else {
+      options.headers['Authorization'] = 'Bearer ' + token;
+    }
+  }
+  return originalFetch(url, options).then(res => {
+    if (res.status === 401 && typeof url === 'string' && url.startsWith('/api') && !url.startsWith('/api/auth/login')) {
+      handleUnauthenticated();
+    }
+    return res;
+  });
+};
+
 let state = {
   currentRoute: 'dashboard',
   currentEmployeeTab: 'working_all',
   currentDetailTab: 'info',
   currentDetailEmpId: null,
   currentLeaveTab: 'pending',
-  currentRole: 'admin', // 'admin', 'hr', 'viewer'
-  currentUser: { name: 'Quản trị viên', role: 'admin', roleLabel: 'Quản trị viên' },
+  currentRole: 'admin', // 'admin', 'hr', 'viewer', 'manager'
+  currentUser: null,
   branches: [],
   departments: [],
   positions: [],
@@ -21,12 +45,213 @@ let state = {
   chartInstances: {}
 };
 
-// Document Ready
+// Document Ready: Check Auth First (Chỉ có tài khoản mới vào được app)
 document.addEventListener('DOMContentLoaded', () => {
+  checkAuthOnStartup();
+});
+
+async function checkAuthOnStartup() {
+  const token = localStorage.getItem('hrm_auth_token');
+  if (!token) {
+    handleUnauthenticated();
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) throw new Error('Unauthenticated');
+    const data = await res.json();
+    state.currentUser = data.user;
+    handleAuthenticated(data.user);
+  } catch (err) {
+    handleUnauthenticated();
+  }
+}
+
+function handleAuthenticated(user) {
+  document.getElementById('authScreen')?.classList.add('hidden');
+  document.getElementById('mainApp')?.classList.remove('hidden');
+  updateHeaderUserInfo(user);
+  applyUserPermissionsToUI(user);
   initRouter();
   initEventListeners();
   loadAllInitialData();
-});
+  lucide.createIcons();
+}
+
+function handleUnauthenticated() {
+  localStorage.removeItem('hrm_auth_token');
+  localStorage.removeItem('hrm_auth_user');
+  state.currentUser = null;
+  document.getElementById('mainApp')?.classList.add('hidden');
+  document.getElementById('authScreen')?.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function updateHeaderUserInfo(user) {
+  if (!user) return;
+  const initials = (user.name || 'US').slice(0, 2).toUpperCase();
+  
+  // Desktop header elements
+  const avatarEl = document.getElementById('userAvatarText');
+  if (avatarEl) avatarEl.innerText = initials;
+  const nameEl = document.getElementById('topbarUserName');
+  if (nameEl) nameEl.innerText = user.name;
+  const roleEl = document.getElementById('topbarUserRole');
+  if (roleEl) roleEl.innerText = user.roleLabel || user.role;
+
+  // Mobile initials
+  const mobileAvatar = document.querySelector('header.md\\:hidden .w-8.h-8.rounded-full');
+  if (mobileAvatar) mobileAvatar.innerText = initials;
+}
+
+function applyUserPermissionsToUI(user) {
+  if (!user) return;
+  // If user has specific branch scope, auto set branch filter
+  if (user.scope && user.scope !== 'all') {
+    const filterSelect = document.getElementById('branchFilter');
+    if (filterSelect) {
+      if (user.scope === 'branch_HN') filterSelect.value = 'HN';
+      else if (user.scope === 'branch_HCM') filterSelect.value = 'HCM';
+      else if (user.scope === 'branch_DN') filterSelect.value = 'DN';
+    }
+  }
+
+  // Check module view permissions
+  if (user.role !== 'admin' && user.permissions) {
+    const navItems = {
+      overview: 'dashboard',
+      employees: 'employees',
+      departments: 'departments',
+      branches: 'branches',
+      positions: 'positions',
+      leaves: 'leaves',
+      reports: 'reports',
+      users: 'users',
+      settings: 'settings'
+    };
+
+    Object.entries(navItems).forEach(([modKey, routeKey]) => {
+      const canView = user.permissions[modKey]?.view;
+      const navBtn = document.querySelector(`[data-nav-route="${routeKey}"]`);
+      if (navBtn) {
+        if (canView === false) {
+          navBtn.classList.add('hidden');
+        } else {
+          navBtn.classList.remove('hidden');
+        }
+      }
+    });
+  }
+}
+
+// -------------------------------------------------------------
+// AUTHENTICATION FORM HANDLERS
+// -------------------------------------------------------------
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  const errBox = document.getElementById('loginErrorBox');
+  const errMsg = document.getElementById('loginErrorMsg');
+  const submitBtn = document.getElementById('loginBtn');
+
+  if (errBox) errBox.classList.add('hidden');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>Đang xác thực...</span>`;
+    lucide.createIcons();
+  }
+
+  try {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Đăng nhập không thành công');
+
+    localStorage.setItem('hrm_auth_token', data.token);
+    localStorage.setItem('hrm_auth_user', JSON.stringify(data.user));
+    state.currentUser = data.user;
+
+    showToast(`Đăng nhập thành công! Chào mừng ${data.user.name}`, 'success');
+    handleAuthenticated(data.user);
+
+  } catch (err) {
+    if (errBox && errMsg) {
+      errBox.classList.remove('hidden');
+      errMsg.innerText = err.message;
+      lucide.createIcons();
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<span>➔ Đăng nhập</span>`;
+    }
+  }
+}
+
+function quickLoginFill(username, password) {
+  const uInput = document.getElementById('loginUsername');
+  const pInput = document.getElementById('loginPassword');
+  if (uInput) uInput.value = username;
+  if (pInput) pInput.value = password;
+  document.getElementById('loginErrorBox')?.classList.add('hidden');
+}
+
+async function logoutPrompt() {
+  if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống HRM không?')) {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    showToast('Đã đăng xuất phiên làm việc an toàn.');
+    handleUnauthenticated();
+  }
+}
+
+function openChangePasswordModal() {
+  document.getElementById('cpCurrentPassword').value = '';
+  document.getElementById('cpNewPassword').value = '';
+  document.getElementById('cpConfirmPassword').value = '';
+  openModal('modalChangePassword');
+}
+
+async function handleChangePasswordSubmit(e) {
+  e.preventDefault();
+  const currentPassword = document.getElementById('cpCurrentPassword').value;
+  const newPassword = document.getElementById('cpNewPassword').value;
+  const confirmPassword = document.getElementById('cpConfirmPassword').value;
+
+  if (newPassword !== confirmPassword) {
+    showToast('Xác nhận mật khẩu mới không khớp!', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('cpSubmitBtn');
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Lỗi khi đổi mật khẩu');
+
+    showToast(data.message || 'Đổi mật khẩu thành công!', 'success');
+    closeModal('modalChangePassword');
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
 
 // -------------------------------------------------------------
 // NAVIGATION & ROUTING
@@ -2380,15 +2605,6 @@ function switchRole(roleKey) {
   toggleUserDropdown();
   loadEmployeesList();
   loadDashboardStats();
-}
-
-function logoutPrompt() {
-  if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-    showToast('Đã đăng xuất phiên làm việc.');
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
-  }
 }
 
 // -------------------------------------------------------------
