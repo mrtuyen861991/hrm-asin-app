@@ -23,6 +23,11 @@ window.fetch = function(url, options = {}) {
   });
 };
 
+// Chuẩn hoá font Montserrat cho toàn bộ biểu đồ Chart.js
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, sans-serif";
+}
+
 let state = {
   currentRoute: 'dashboard',
   currentEmployeeTab: 'working_all',
