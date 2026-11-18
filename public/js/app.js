@@ -126,6 +126,8 @@ function applyUserPermissionsToUI(user) {
       branches: 'branches',
       positions: 'positions',
       leaves: 'leaves',
+      attendance: 'attendance',
+      payroll: 'payroll',
       reports: 'reports',
       users: 'users',
       settings: 'settings'
@@ -260,6 +262,14 @@ function initRouter() {
   const hash = window.location.hash.replace('#', '') || 'dashboard';
   navigate(hash);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const payslipParam = urlParams.get('payslip');
+  if (payslipParam) {
+    setTimeout(() => {
+      if (typeof openPayslipModal === 'function') openPayslipModal(payslipParam);
+    }, 600);
+  }
+
   window.addEventListener('hashchange', () => {
     const newHash = window.location.hash.replace('#', '') || 'dashboard';
     navigate(newHash);
@@ -319,6 +329,10 @@ function navigate(routeName) {
     loadPositionsView();
   } else if (routeName === 'leaves') {
     loadLeavesList();
+  } else if (routeName === 'attendance') {
+    loadAttendanceView();
+  } else if (routeName === 'payroll') {
+    loadPayrollView();
   } else if (routeName === 'reports') {
     loadReportsView();
   } else if (routeName === 'users') {
@@ -3481,4 +3495,635 @@ function showToast(msg, type = 'info') {
     toast.classList.add('opacity-0');
     setTimeout(() => toast.remove(), 300);
   }, 3500);
+}
+
+function formatVND(num) {
+  if (num === undefined || num === null || isNaN(num)) return '0 đ';
+  return new Intl.NumberFormat('vi-VN').format(Math.round(num)) + ' đ';
+}
+
+// -------------------------------------------------------------
+// 17. TIMEKEEPING VIEW (CHẤM CÔNG CÁC PHÒNG BAN RIÊNG BIỆT)
+// -------------------------------------------------------------
+state.currentAttendanceDept = 'all';
+state.attendanceList = [];
+
+// November 2026 days map (Day 1 is Sunday)
+const NOV_DAY_NAMES = {
+  1: 'CN', 2: 'T2', 3: 'T3', 4: 'T4', 5: 'T5', 6: 'T6', 7: 'T7',
+  8: 'CN', 9: 'T2', 10: 'T3', 11: 'T4', 12: 'T5', 13: 'T6', 14: 'T7',
+  15: 'CN', 16: 'T2', 17: 'T3', 18: 'T4', 19: 'T5', 20: 'T6', 21: 'T7',
+  22: 'CN', 23: 'T2', 24: 'T3', 25: 'T4', 26: 'T5', 27: 'T6', 28: 'T7',
+  29: 'CN', 30: 'T2'
+};
+
+async function loadAttendanceView() {
+  const monthSelect = document.getElementById('attendanceMonthSelect');
+  const month = monthSelect ? monthSelect.value : '11/2026';
+  const deptId = state.currentAttendanceDept || 'all';
+
+  try {
+    const res = await fetch(`/api/attendance?month=${month}&departmentId=${deptId}`);
+    if (!res.ok) throw new Error('Không thể tải dữ liệu chấm công');
+    const data = await res.json();
+    state.attendanceList = data.attendance;
+
+    // Render Department Selector Tabs
+    const tabsContainer = document.getElementById('attendanceDeptTabs');
+    if (tabsContainer && data.departments) {
+      // Calculate staff count per department
+      const counts = {};
+      (data.attendance || []).forEach(a => {
+        counts[a.departmentId] = (counts[a.departmentId] || 0) + 1;
+      });
+
+      tabsContainer.innerHTML = `
+        <button onclick="setAttendanceDept('all')" class="whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${deptId === 'all' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+          Tất cả phòng ban (${data.attendance.length})
+        </button>
+      ` + data.departments.map(d => {
+        const count = counts[d.id] || 0;
+        const isActive = deptId === d.id;
+        return `
+          <button onclick="setAttendanceDept('${d.id}')" class="whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            <span>${d.name}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}">${count}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // Update KPI Cards
+    const s = data.summary;
+    const elStaff = document.getElementById('attKpiStaff');
+    if (elStaff) elStaff.innerText = `${s.totalStaff} NV`;
+    const elWork = document.getElementById('attKpiWorkDays');
+    if (elWork) elWork.innerText = `${s.totalWorkDays} công`;
+    const elLeave = document.getElementById('attKpiLeaveDays');
+    if (elLeave) elLeave.innerText = `${s.totalLeaveDays} ngày`;
+    const elLate = document.getElementById('attKpiLateDays');
+    if (elLate) elLate.innerText = `${s.totalLateDays} lần`;
+    const elRate = document.getElementById('attKpiRate');
+    if (elRate) elRate.innerText = `${s.avgAttendanceRate}%`;
+
+    // Render Table Header (Days 1 to 30)
+    renderAttendanceHeader();
+
+    // Render Table Rows
+    filterAttendanceTable();
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function setAttendanceDept(deptId) {
+  state.currentAttendanceDept = deptId;
+  loadAttendanceView();
+}
+
+function renderAttendanceHeader() {
+  const thead = document.getElementById('attendanceTableHead');
+  if (!thead) return;
+
+  let daysHtml = '';
+  for (let d = 1; d <= 30; d++) {
+    const dayName = NOV_DAY_NAMES[d] || '';
+    const isSun = dayName === 'CN';
+    daysHtml += `
+      <th class="p-1 text-center w-8 min-w-[32px] ${isSun ? 'bg-slate-200/90 text-rose-600' : ''}">
+        <span class="block text-[10px] ${isSun ? 'font-extrabold text-rose-600' : 'text-slate-400'}">${dayName}</span>
+        <span class="block text-xs font-bold leading-none mt-0.5">${d}</span>
+      </th>
+    `;
+  }
+
+  thead.innerHTML = `
+    <tr>
+      <th class="p-3 w-20 sticky left-0 bg-slate-100 z-30 border-r border-slate-200">Mã NV</th>
+      <th class="p-3 w-48 sticky left-20 bg-slate-100 z-30 border-r border-slate-200">Họ và tên</th>
+      ${daysHtml}
+      <th class="p-2 text-center w-16 bg-slate-100 text-brand-700 font-bold border-l border-slate-200">Công TT</th>
+      <th class="p-2 text-center w-14 bg-slate-100 text-blue-700 font-bold">Phép</th>
+      <th class="p-2 text-center w-14 bg-slate-100 text-rose-700 font-bold">KL</th>
+      <th class="p-2 text-center w-14 bg-slate-100 text-amber-700 font-bold">Muộn</th>
+      <th class="p-2 text-center w-14 bg-slate-100 text-indigo-700 font-bold">OT (h)</th>
+    </tr>
+  `;
+}
+
+function filterAttendanceTable() {
+  const tbody = document.getElementById('attendanceTableBody');
+  if (!tbody || !state.attendanceList) return;
+
+  const search = (document.getElementById('attendanceSearchInput')?.value || '').trim().toLowerCase();
+
+  const filtered = state.attendanceList.filter(a => {
+    if (search) {
+      const matchName = (a.employeeName || '').toLowerCase().includes(search);
+      const matchCode = (a.employeeCode || '').toLowerCase().includes(search);
+      if (!matchName && !matchCode) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="37" class="p-8 text-center text-slate-400">
+          <i data-lucide="calendar-x" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+          Không tìm thấy dữ liệu chấm công cho phòng ban này.
+        </td>
+      </tr>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(a => {
+    let dayCells = '';
+    for (let d = 1; d <= 30; d++) {
+      const val = (a.days && a.days[d]) ? a.days[d] : '—';
+      const dayName = NOV_DAY_NAMES[d] || '';
+      const isSun = dayName === 'CN';
+
+      let cellBadge = '';
+      if (isSun) {
+        cellBadge = `<span class="w-6 h-6 rounded bg-slate-100 text-slate-400 font-medium flex items-center justify-center text-[10px] select-none">CN</span>`;
+      } else if (val === '1' || val === 'X') {
+        cellBadge = `<button onclick="cycleAttendanceCell('${a.employeeCode}', ${d}, '${val}')" class="w-6 h-6 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[11px] hover:ring-2 hover:ring-emerald-400 transition" title="Đủ công (Click để đổi)">1</button>`;
+      } else if (val === '0.5' || val === '½') {
+        cellBadge = `<button onclick="cycleAttendanceCell('${a.employeeCode}', ${d}, '${val}')" class="w-6 h-6 rounded bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-[11px] hover:ring-2 hover:ring-amber-400 transition" title="Nửa ngày (Click để đổi)">½</button>`;
+      } else if (val === 'P') {
+        cellBadge = `<button onclick="cycleAttendanceCell('${a.employeeCode}', ${d}, '${val}')" class="w-6 h-6 rounded bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-[11px] hover:ring-2 hover:ring-blue-400 transition" title="Nghỉ phép năm (Click để đổi)">P</button>`;
+      } else if (val === 'KL' || val === 'KP') {
+        cellBadge = `<button onclick="cycleAttendanceCell('${a.employeeCode}', ${d}, '${val}')" class="w-6 h-6 rounded bg-rose-100 text-rose-800 font-bold flex items-center justify-center text-[11px] hover:ring-2 hover:ring-rose-400 transition" title="Nghỉ không lương (Click để đổi)">KL</button>`;
+      } else if (val === 'M' || val === 'V') {
+        cellBadge = `<button onclick="cycleAttendanceCell('${a.employeeCode}', ${d}, '${val}')" class="w-6 h-6 rounded bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-[11px] hover:ring-2 hover:ring-orange-400 transition" title="Đi muộn/Về sớm (Click để đổi)">M</button>`;
+      } else {
+        cellBadge = `<button onclick="cycleAttendanceCell('${a.employeeCode}', ${d}, '${val}')" class="w-6 h-6 rounded bg-slate-50 text-slate-400 flex items-center justify-center text-[10px] hover:bg-slate-200 transition">·</button>`;
+      }
+
+      dayCells += `<td class="p-1 text-center ${isSun ? 'bg-slate-50/70' : ''}">${cellBadge}</td>`;
+    }
+
+    return `
+      <tr class="hover:bg-slate-50/80 transition">
+        <td class="p-2.5 font-mono text-xs font-semibold text-slate-700 sticky left-0 bg-white border-r border-slate-200 z-10">${a.employeeCode}</td>
+        <td class="p-2.5 sticky left-20 bg-white border-r border-slate-200 z-10 whitespace-nowrap">
+          <p class="font-bold text-slate-900 text-xs">${a.employeeName}</p>
+          <p class="text-[10px] text-slate-400">${a.positionName || a.departmentName}</p>
+        </td>
+        ${dayCells}
+        <td class="p-2 text-center font-bold text-brand-600 bg-brand-50/40 border-l border-slate-200 text-xs">${a.totalWorkDays}</td>
+        <td class="p-2 text-center text-xs font-medium text-blue-600">${a.leaveDays || '—'}</td>
+        <td class="p-2 text-center text-xs font-medium text-rose-600">${a.unpaidDays || '—'}</td>
+        <td class="p-2 text-center text-xs font-medium text-amber-600">${a.lateDays || '—'}</td>
+        <td class="p-2 text-center text-xs font-semibold text-indigo-600">${a.otHours ? `${a.otHours}h` : '—'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function cycleAttendanceCell(empCode, day, currentVal) {
+  // Cycle: '1' -> '0.5' -> 'P' -> 'KL' -> 'M' -> '1'
+  let nextVal = '1';
+  if (currentVal === '1' || currentVal === 'X') nextVal = '0.5';
+  else if (currentVal === '0.5' || currentVal === '½') nextVal = 'P';
+  else if (currentVal === 'P') nextVal = 'KL';
+  else if (currentVal === 'KL' || currentVal === 'KP') nextVal = 'M';
+  else if (currentVal === 'M' || currentVal === 'V') nextVal = '1';
+
+  const month = document.getElementById('attendanceMonthSelect')?.value || '11/2026';
+
+  try {
+    const res = await fetch('/api/attendance/update-day', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employeeCode: empCode, month, day, status: nextVal })
+    });
+    if (!res.ok) throw new Error('Không thể cập nhật ngày công');
+    
+    // Update local record
+    const target = state.attendanceList.find(a => a.employeeCode === empCode);
+    if (target) {
+      target.days[day] = nextVal;
+    }
+    filterAttendanceTable();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function autoFillCurrentDeptAttendance() {
+  const deptId = state.currentAttendanceDept || 'all';
+  const month = document.getElementById('attendanceMonthSelect')?.value || '11/2026';
+
+  if (!confirm(`Bạn có chắc chắn muốn chấm công chuẩn (1 công) cho toàn bộ nhân viên thuộc bộ lọc này không?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/attendance/auto-fill-dept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ departmentId: deptId, month, status: '1' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Lỗi khi chấm công hàng loạt');
+    showToast(data.message, 'success');
+    await loadAttendanceView();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function exportAttendanceExcel() {
+  const month = document.getElementById('attendanceMonthSelect')?.value || '11/2026';
+  const deptId = state.currentAttendanceDept || 'all';
+  window.open(`/api/attendance/export-excel?month=${encodeURIComponent(month)}&departmentId=${deptId}`, '_blank');
+}
+
+// -------------------------------------------------------------
+// 18. PAYROLL VIEW (TÍNH LƯƠNG & XUẤT PHIẾU LƯƠNG)
+// -------------------------------------------------------------
+state.payrollList = [];
+
+async function loadPayrollView() {
+  const monthSelect = document.getElementById('payrollMonthSelect');
+  const month = monthSelect ? monthSelect.value : '11/2026';
+
+  try {
+    const res = await fetch(`/api/payroll?month=${month}`);
+    if (!res.ok) throw new Error('Không thể tải bảng tính lương');
+    const data = await res.json();
+    state.payrollList = data.payroll;
+
+    // Populate department filter
+    const deptSelect = document.getElementById('payrollDeptSelect');
+    if (deptSelect && data.departments) {
+      const current = deptSelect.value;
+      deptSelect.innerHTML = `<option value="all">Tất cả phòng ban</option>` +
+        data.departments.map(d => `<option value="${d.id}" ${current === d.id ? 'selected' : ''}>${d.name}</option>`).join('');
+    }
+
+    // Update Summary KPI Cards
+    const s = data.summary;
+    const elTotal = document.getElementById('payKpiTotalNet');
+    if (elTotal) elTotal.innerText = `${(s.totalNet / 1e9).toFixed(2)} tỷ đ`;
+    const elAvg = document.getElementById('payKpiAvgNet');
+    if (elAvg) elAvg.innerText = `${(s.avgNetSalary / 1e6).toFixed(1)} tr đ`;
+    const elIns = document.getElementById('payKpiInsurance');
+    if (elIns) elIns.innerText = `${(s.totalInsurance / 1e6).toFixed(1)} tr đ`;
+    const elTax = document.getElementById('payKpiTax');
+    if (elTax) elTax.innerText = `${(s.totalTax / 1e6).toFixed(1)} tr đ`;
+
+    filterPayrollTable();
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function filterPayrollTable() {
+  const tbody = document.getElementById('payrollTableBody');
+  if (!tbody || !state.payrollList) return;
+
+  const branch = document.getElementById('payrollBranchSelect')?.value || 'all';
+  const dept = document.getElementById('payrollDeptSelect')?.value || 'all';
+  const search = (document.getElementById('payrollSearchInput')?.value || '').trim().toLowerCase();
+
+  const filtered = state.payrollList.filter(p => {
+    if (branch !== 'all' && p.branchId !== branch) return false;
+    if (dept !== 'all' && p.departmentId !== dept) return false;
+    if (search) {
+      const matchName = (p.employeeName || '').toLowerCase().includes(search);
+      const matchCode = (p.employeeCode || '').toLowerCase().includes(search);
+      if (!matchName && !matchCode) return false;
+    }
+    return true;
+  });
+
+  const countBadge = document.getElementById('payrollCountBadge');
+  if (countBadge) countBadge.innerText = `${filtered.length} / ${state.payrollList.length}`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" class="p-8 text-center text-slate-400">
+          <i data-lucide="banknote" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+          Không tìm thấy nhân viên nào phù hợp trong bảng lương.
+        </td>
+      </tr>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(p => `
+    <tr class="hover:bg-slate-50/80 transition">
+      <td class="p-3.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
+            ${p.employeeName.slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <p class="font-bold text-slate-900">${p.employeeName}</p>
+            <p class="text-[11px] text-slate-400 font-mono">${p.employeeCode} • ${p.positionName}</p>
+          </div>
+        </div>
+      </td>
+      <td class="p-3.5 text-xs text-slate-600">
+        <div class="font-medium text-slate-800">${p.departmentName}</div>
+        <div class="text-[11px] text-slate-400">${p.branchName}</div>
+      </td>
+      <td class="p-3.5 text-right font-medium text-slate-700 text-xs">${formatVND(p.baseSalary)}</td>
+      <td class="p-3.5 text-center">
+        <span class="px-2 py-0.5 rounded-full text-xs font-bold ${p.actualWorkDays >= 26 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+          ${p.actualWorkDays} / ${p.standardDays}
+        </span>
+      </td>
+      <td class="p-3.5 text-right text-xs font-semibold text-slate-800">${formatVND(p.calculatedSalary)}</td>
+      <td class="p-3.5 text-right text-xs text-slate-600">
+        <div>${formatVND(p.allowance)}</div>
+        ${p.bonus ? `<div class="text-[10px] text-emerald-600 font-semibold">+${formatVND(p.bonus)}</div>` : ''}
+      </td>
+      <td class="p-3.5 text-right text-xs font-bold text-slate-900">${formatVND(p.grossSalary)}</td>
+      <td class="p-3.5 text-right text-xs text-rose-600">-${formatVND(p.totalInsurance)}</td>
+      <td class="p-3.5 text-right text-xs text-slate-600">-${formatVND((p.tax || 0) + (p.penalties || 0))}</td>
+      <td class="p-3.5 text-right text-sm font-extrabold text-emerald-600 whitespace-nowrap bg-emerald-50/50">
+        ${formatVND(p.netSalary)}
+      </td>
+      <td class="p-3.5 text-center">
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${p.statusLabel || 'Đã duyệt'}
+        </span>
+      </td>
+      <td class="p-3.5 text-center whitespace-nowrap">
+        <button onclick="openPayslipModal('${p.employeeCode}')" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition">
+          <i data-lucide="receipt" class="w-3.5 h-3.5 text-brand-600"></i>
+          <span>Phiếu lương</span>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  lucide.createIcons();
+}
+
+async function recalculatePayroll() {
+  const month = document.getElementById('payrollMonthSelect')?.value || '11/2026';
+  try {
+    const res = await fetch('/api/payroll/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Lỗi khi tính lại bảng lương');
+    showToast(data.message, 'success');
+    await loadPayrollView();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function exportPayrollExcel() {
+  const month = document.getElementById('payrollMonthSelect')?.value || '11/2026';
+  const dept = document.getElementById('payrollDeptSelect')?.value || 'all';
+  window.open(`/api/payroll/export-excel?month=${encodeURIComponent(month)}&departmentId=${dept}`, '_blank');
+}
+
+// -------------------------------------------------------------
+// 19. PAYSLIP MODAL CONTROLLER (XUẤT & IN PHIẾU LƯƠNG CHUẨN)
+// -------------------------------------------------------------
+async function openPayslipModal(empCode) {
+  const month = document.getElementById('payrollMonthSelect')?.value || '11/2026';
+  try {
+    const res = await fetch(`/api/payroll/payslip/${empCode}?month=${encodeURIComponent(month)}`);
+    if (!res.ok) throw new Error('Không thể tải phiếu báo lương');
+    const p = await res.json();
+
+    const container = document.getElementById('printablePayslipContent');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="space-y-6">
+        <!-- Letterhead & Company Header -->
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between border-b-2 border-slate-900 pb-4 gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold shadow-md">
+              <i data-lucide="layers" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">${p.company.name}</h2>
+              <p class="text-[11px] text-slate-500">${p.company.address}</p>
+              <p class="text-[11px] text-slate-500">MST: <span class="font-mono font-semibold">${p.company.taxCode}</span> • ĐT: ${p.company.phone}</p>
+            </div>
+          </div>
+          <div class="sm:text-right">
+            <span class="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg uppercase">
+              ${p.summary.status}
+            </span>
+            <p class="text-[11px] text-slate-400 mt-1 font-mono">Mã phiếu: PL-${p.employee.code}-${p.date.replace(/\//g, '')}</p>
+          </div>
+        </div>
+
+        <!-- Payslip Title -->
+        <div class="text-center py-2">
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">${p.title}</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Kỳ tính lương từ ngày 01/11/2026 đến ngày 30/11/2026</p>
+        </div>
+
+        <!-- Employee Info Grid Card -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div>
+            <p class="text-slate-400 text-[11px]">Mã nhân viên:</p>
+            <p class="font-bold text-slate-900 font-mono text-sm">${p.employee.code}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Họ và tên:</p>
+            <p class="font-bold text-slate-900 text-sm">${p.employee.name}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Phòng ban:</p>
+            <p class="font-semibold text-slate-800">${p.employee.department}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Chức vụ:</p>
+            <p class="font-semibold text-slate-800">${p.employee.position}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Chi nhánh:</p>
+            <p class="font-medium text-slate-700">${p.employee.branch}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Số tài khoản nhận:</p>
+            <p class="font-mono font-bold text-slate-900">${p.employee.bankAccount}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Ngân hàng:</p>
+            <p class="font-medium text-slate-700">${p.employee.bankName}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 text-[11px]">Ngày chuyển lương:</p>
+            <p class="font-medium text-emerald-700">${p.summary.paymentDate}</p>
+          </div>
+        </div>
+
+        <!-- Detailed Earnings & Deductions Tables -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Column 1: Thu nhập -->
+          <div class="border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-emerald-50/80 px-4 py-2.5 border-b border-emerald-100 flex items-center justify-between">
+              <h4 class="font-bold text-emerald-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i>
+                I. CÁC KHOẢN THU NHẬP (A)
+              </h4>
+            </div>
+            <table class="w-full text-xs">
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="p-2.5 text-slate-600">1. Lương cơ bản theo hợp đồng</td>
+                  <td class="p-2.5 text-right font-medium text-slate-900">${formatVND(p.earnings.baseSalary)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">2. Ngày công chuẩn trong tháng</td>
+                  <td class="p-2.5 text-right font-medium text-slate-900">${p.work.standardDays} ngày</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">3. Ngày công làm việc thực tế</td>
+                  <td class="p-2.5 text-right font-bold text-brand-600">${p.work.actualWorkDays} ngày</td>
+                </tr>
+                <tr class="bg-slate-50/50">
+                  <td class="p-2.5 text-slate-800 font-medium">➔ Lương theo công thực tế</td>
+                  <td class="p-2.5 text-right font-bold text-slate-900">${formatVND(p.earnings.calculatedSalary)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">4. Phụ cấp (Ăn trưa, xăng xe, ĐT)</td>
+                  <td class="p-2.5 text-right font-medium text-slate-900">${formatVND(p.earnings.allowance)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">5. Lương làm thêm giờ (${p.work.otHours}h OT)</td>
+                  <td class="p-2.5 text-right font-medium text-slate-900">${formatVND(p.earnings.otSalary)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">6. Thưởng hiệu quả / KPI</td>
+                  <td class="p-2.5 text-right font-medium text-emerald-600">+${formatVND(p.earnings.bonus)}</td>
+                </tr>
+                <tr class="bg-emerald-50/60 font-bold border-t border-emerald-200">
+                  <td class="p-2.5 text-emerald-950">TỔNG THU NHẬP GROSS (I)</td>
+                  <td class="p-2.5 text-right text-emerald-700 text-sm">${formatVND(p.earnings.grossSalary)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Column 2: Khấu trừ -->
+          <div class="border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-rose-50/80 px-4 py-2.5 border-b border-rose-100 flex items-center justify-between">
+              <h4 class="font-bold text-rose-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="minus-circle" class="w-4 h-4 text-rose-600"></i>
+                II. CÁC KHOẢN KHẤU TRỪ (B)
+              </h4>
+            </div>
+            <table class="w-full text-xs">
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="p-2.5 text-slate-600">1. Bảo hiểm Xã hội (BHXH 8%)</td>
+                  <td class="p-2.5 text-right font-medium text-rose-600">-${formatVND(p.deductions.bhxh)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">2. Bảo hiểm Y tế (BHYT 1.5%)</td>
+                  <td class="p-2.5 text-right font-medium text-rose-600">-${formatVND(p.deductions.bhyt)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">3. Bảo hiểm Thất nghiệp (BHTN 1%)</td>
+                  <td class="p-2.5 text-right font-medium text-rose-600">-${formatVND(p.deductions.bhtn)}</td>
+                </tr>
+                <tr class="bg-slate-50/50">
+                  <td class="p-2.5 text-slate-800 font-medium">➔ Tổng trích nộp BH (10.5%)</td>
+                  <td class="p-2.5 text-right font-bold text-rose-600">-${formatVND(p.deductions.totalInsurance)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">4. Thuế Thu nhập cá nhân (TNCN)</td>
+                  <td class="p-2.5 text-right font-medium text-rose-600">-${formatVND(p.deductions.tax)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">5. Phạt đi muộn / Vi phạm</td>
+                  <td class="p-2.5 text-right font-medium text-slate-600">-${formatVND(p.deductions.penalties)}</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 text-slate-600">6. Tạm ứng lương trong kỳ</td>
+                  <td class="p-2.5 text-right font-medium text-slate-600">-${formatVND(p.deductions.advance)}</td>
+                </tr>
+                <tr class="bg-rose-50/60 font-bold border-t border-rose-200">
+                  <td class="p-2.5 text-rose-950">TỔNG KHẨU TRỪ (II)</td>
+                  <td class="p-2.5 text-right text-rose-700 text-sm">-${formatVND(p.deductions.totalDeductions)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Net Salary Grand Total Callout Box -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold text-emerald-100 uppercase tracking-wider">THỰC LĨNH CHUYỂN KHOẢN (NET = I - II):</p>
+            <h2 class="text-3xl font-black tracking-tight mt-1 text-white">${formatVND(p.summary.netSalary)}</h2>
+            <p class="text-xs text-emerald-100 italic mt-1 font-medium">Bằng chữ: ${p.summary.amountInWords}</p>
+          </div>
+          <div class="text-right border-t sm:border-t-0 sm:border-l border-emerald-400/40 pt-2 sm:pt-0 sm:pl-5">
+            <span class="text-xs text-emerald-100">Hình thức thanh toán:</span>
+            <p class="font-bold text-sm">Chuyển khoản 24/7</p>
+            <p class="text-[11px] text-emerald-200">Ngân hàng ${p.employee.bankName}</p>
+          </div>
+        </div>
+
+        <!-- Signatures & Official Stamp Section -->
+        <div class="pt-6 border-t border-slate-200 grid grid-cols-3 text-center text-xs gap-4 relative">
+          <div>
+            <p class="font-bold text-slate-800 uppercase tracking-wider">Người lập biểu</p>
+            <p class="text-[11px] text-slate-400 italic mb-12">(Ký, ghi rõ họ tên)</p>
+            <p class="font-bold text-slate-900">Kế toán tiền lương</p>
+          </div>
+
+          <div>
+            <p class="font-bold text-slate-800 uppercase tracking-wider">Kế toán trưởng</p>
+            <p class="text-[11px] text-slate-400 italic mb-12">(Ký, ghi rõ họ tên)</p>
+            <p class="font-bold text-slate-900">Phạm Thị Thu Hà</p>
+          </div>
+
+          <div class="relative">
+            <p class="font-bold text-slate-800 uppercase tracking-wider">Giám đốc duyệt chi</p>
+            <p class="text-[11px] text-slate-400 italic mb-12">(Ký, đóng dấu)</p>
+            
+            <!-- Red Official Digital Stamp Badge -->
+            <div class="absolute left-1/2 -translate-x-1/2 top-7 w-28 h-28 border-2 border-red-600/80 rounded-full flex flex-col items-center justify-center p-1 text-[9px] font-black text-red-600 uppercase tracking-tighter opacity-85 rotate-[-12deg] pointer-events-none select-none">
+              <span class="text-[8px] text-center leading-tight">CÔNG TY CỔ PHẦN</span>
+              <span class="text-[9px] font-black">TẬP ĐOÀN ASIN</span>
+              <span class="w-8 h-0.5 bg-red-600 my-0.5"></span>
+              <span class="text-[10px] text-red-700 font-extrabold">ĐÃ DUYỆT CHI</span>
+              <span class="text-[7px]">★ ★ ★</span>
+            </div>
+
+            <p class="font-bold text-slate-900">Ngô Mai Trang</p>
+          </div>
+        </div>
+
+        <!-- Note footer -->
+        <div class="text-[10px] text-slate-400 border-t border-slate-100 pt-3 text-center italic">
+          Mọi thắc mắc về phiếu lương, vui lòng liên hệ Phòng Tài chính - Kế toán trong vòng 03 ngày làm việc kể từ ngày nhận phiếu.
+        </div>
+      </div>
+    `;
+
+    openModal('modalPayslip');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function printPayslipDocument() {
+  window.print();
 }

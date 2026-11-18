@@ -1480,7 +1480,436 @@ app.get('/api/export-excel', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 7. GOOGLE SHEETS LIVE SYNC & ENDPOINTS
+// 7. TIMEKEEPING (CHẤM CÔNG CÁC PHÒNG BAN RIÊNG BIỆT)
+// -------------------------------------------------------------
+app.get('/api/attendance', (req, res) => {
+  const db = getDB();
+  const month = req.query.month || '11/2026';
+  const deptId = req.query.departmentId || 'all';
+  const branchId = req.query.branchId || 'all';
+
+  let list = (db.attendance || []).filter(a => a.month === month);
+
+  if (deptId !== 'all') {
+    list = list.filter(a => a.departmentId === deptId);
+  }
+  if (branchId !== 'all') {
+    list = list.filter(a => a.branchId === branchId);
+  }
+
+  // Calculate summary metrics
+  const totalStaff = list.length;
+  const totalWorkDays = list.reduce((sum, a) => sum + (a.totalWorkDays || 0), 0);
+  const totalLeaveDays = list.reduce((sum, a) => sum + (a.leaveDays || 0), 0);
+  const totalUnpaidDays = list.reduce((sum, a) => sum + (a.unpaidDays || 0), 0);
+  const totalLateDays = list.reduce((sum, a) => sum + (a.lateDays || 0), 0);
+  const totalOTHours = list.reduce((sum, a) => sum + (a.otHours || 0), 0);
+  const standardPossible = totalStaff * 26;
+  const avgAttendanceRate = standardPossible > 0 ? ((totalWorkDays / standardPossible) * 100).toFixed(1) : 0;
+
+  res.json({
+    month,
+    departmentId: deptId,
+    branchId: branchId,
+    departments: db.departments || [],
+    branches: db.branches || [],
+    attendance: list,
+    summary: {
+      totalStaff,
+      totalWorkDays,
+      totalLeaveDays,
+      totalUnpaidDays,
+      totalLateDays,
+      totalOTHours,
+      avgAttendanceRate
+    }
+  });
+});
+
+app.post('/api/attendance/update-day', (req, res) => {
+  const db = getDB();
+  const { employeeCode, month, day, status } = req.body;
+
+  if (!employeeCode || !month || !day || status === undefined) {
+    return res.status(400).json({ error: 'Thiếu dữ liệu chấm công' });
+  }
+
+  const record = (db.attendance || []).find(a => a.employeeCode === employeeCode && a.month === month);
+  if (!record) {
+    return res.status(404).json({ error: 'Không tìm thấy bảng công nhân viên' });
+  }
+
+  record.days = record.days || {};
+  record.days[day] = status;
+
+  // Recalculate totals
+  let workDays = 0;
+  let leave = 0;
+  let unpaid = 0;
+  let late = 0;
+
+  Object.entries(record.days).forEach(([d, val]) => {
+    if (val === '1' || val === 'X') workDays += 1;
+    else if (val === '0.5' || val === '½') workDays += 0.5;
+    else if (val === 'P') { leave += 1; workDays += 1; } // Phép năm có lương
+    else if (val === 'KL' || val === 'KP') unpaid += 1;
+    else if (val === 'M' || val === 'V') { late += 1; workDays += 1; }
+    else if (val === 'O') { leave += 1; workDays += 1; } // Nghỉ ốm BHXH
+  });
+
+  record.totalWorkDays = workDays;
+  record.leaveDays = leave;
+  record.unpaidDays = unpaid;
+  record.lateDays = late;
+
+  // Sync with payroll if exists
+  const payRecord = (db.payroll || []).find(p => p.employeeCode === employeeCode && p.month === month);
+  if (payRecord) {
+    payRecord.actualWorkDays = workDays;
+    const std = payRecord.standardDays || 26;
+    payRecord.calculatedSalary = Math.round((payRecord.baseSalary / std) * Math.min(workDays, std));
+    payRecord.penalties = late * 100000;
+    payRecord.grossSalary = payRecord.calculatedSalary + payRecord.allowance + (payRecord.otSalary || 0) + (payRecord.bonus || 0);
+    payRecord.totalDeductions = payRecord.totalInsurance + payRecord.tax + payRecord.penalties + (payRecord.advance || 0);
+    payRecord.netSalary = payRecord.grossSalary - payRecord.totalDeductions;
+  }
+
+  saveDB(db);
+  res.json({ success: true, message: 'Cập nhật chấm công thành công', record });
+});
+
+app.post('/api/attendance/auto-fill-dept', (req, res) => {
+  const db = getDB();
+  const { departmentId, month, status } = req.body;
+  const targetStatus = status || '1';
+  const sundays = [1, 8, 15, 22, 29];
+
+  let count = 0;
+  (db.attendance || []).forEach(record => {
+    if (record.month === month && (departmentId === 'all' || record.departmentId === departmentId)) {
+      record.days = record.days || {};
+      for (let d = 1; d <= 30; d++) {
+        if (!sundays.includes(d)) {
+          record.days[d] = targetStatus;
+        }
+      }
+      record.totalWorkDays = 26;
+      record.leaveDays = 0;
+      record.unpaidDays = 0;
+      record.lateDays = 0;
+      count++;
+    }
+  });
+
+  saveDB(db);
+  res.json({ success: true, message: `Đã chấm công hàng loạt cho ${count} nhân sự thành công!` });
+});
+
+app.get('/api/attendance/export-excel', (req, res) => {
+  const db = getDB();
+  const month = req.query.month || '11/2026';
+  const deptId = req.query.departmentId || 'all';
+
+  let list = (db.attendance || []).filter(a => a.month === month);
+  if (deptId !== 'all') {
+    list = list.filter(a => a.departmentId === deptId);
+  }
+
+  const exportRows = list.map(a => {
+    const row = {
+      'Mã NV': a.employeeCode,
+      'Họ và tên': a.employeeName,
+      'Phòng ban': a.departmentName,
+      'Chức danh': a.positionName
+    };
+    for (let d = 1; d <= 30; d++) {
+      row[`N${d}`] = (a.days && a.days[d]) ? a.days[d] : '—';
+    }
+    row['Tổng ngày công'] = a.totalWorkDays;
+    row['Nghỉ phép (P)'] = a.leaveDays;
+    row['Không lương (KL)'] = a.unpaidDays;
+    row['Đi muộn (M)'] = a.lateDays;
+    row['Giờ OT'] = a.otHours;
+    return row;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(exportRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `Cham_Cong_${month.replace('/', '_')}`);
+  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+  res.setHeader('Content-Disposition', `attachment; filename=Bang_Cham_Cong_ASIN_${month.replace('/', '_')}.xlsx`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
+// -------------------------------------------------------------
+// 8. PAYROLL (TÍNH LƯƠNG & XUẤT PHIẾU LƯƠNG)
+// -------------------------------------------------------------
+function numberToVietnameseWords(num) {
+  if (!num || isNaN(num) || num <= 0) return 'Không đồng';
+  const ChuSo = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+  const Tien = ['', 'nghìn', 'triệu', 'tỷ', 'nghìn tỷ', 'triệu tỷ'];
+
+  function readThreeDigits(baso) {
+    let tram = Math.floor(baso / 100);
+    let chuc = Math.floor((baso % 100) / 10);
+    let donvi = baso % 10;
+    let ketqua = '';
+
+    if (tram === 0 && chuc === 0 && donvi === 0) return '';
+    if (tram !== 0) {
+      ketqua += ChuSo[tram] + ' trăm ';
+      if (chuc === 0 && donvi !== 0) ketqua += 'lẻ ';
+    }
+    if (chuc !== 0 && chuc !== 1) {
+      ketqua += ChuSo[chuc] + ' mươi';
+      if (chuc === 0 && donvi !== 0) ketqua += ' linh ';
+    }
+    if (chuc === 1) ketqua += 'mười';
+    switch (donvi) {
+      case 1:
+        if (chuc !== 0 && chuc !== 1) ketqua += ' mốt';
+        else ketqua += ' một';
+        break;
+      case 5:
+        if (chuc === 0) ketqua += ' năm';
+        else ketqua += ' lăm';
+        break;
+      default:
+        if (donvi !== 0) ketqua += ' ' + ChuSo[donvi];
+        break;
+    }
+    return ketqua;
+  }
+
+  let str = Math.round(num).toString();
+  let groups = [];
+  while (str.length > 0) {
+    groups.unshift(parseInt(str.slice(-3)));
+    str = str.slice(0, -3);
+  }
+
+  let res = '';
+  for (let i = 0; i < groups.length; i++) {
+    let three = readThreeDigits(groups[i]);
+    if (three) {
+      res += three + ' ' + Tien[groups.length - 1 - i] + ' ';
+    }
+  }
+
+  res = res.trim();
+  if (!res) return 'Không đồng';
+  res = res.charAt(0).toUpperCase() + res.slice(1) + ' đồng chẵn.';
+  return res.replace(/\s+/g, ' ');
+}
+
+app.get('/api/payroll', (req, res) => {
+  const db = getDB();
+  const month = req.query.month || '11/2026';
+  const deptId = req.query.departmentId || 'all';
+  const branchId = req.query.branchId || 'all';
+
+  let list = (db.payroll || []).filter(p => p.month === month);
+
+  if (deptId !== 'all') {
+    list = list.filter(p => p.departmentId === deptId);
+  }
+  if (branchId !== 'all') {
+    list = list.filter(p => p.branchId === branchId);
+  }
+
+  const totalGross = list.reduce((sum, p) => sum + (p.grossSalary || 0), 0);
+  const totalNet = list.reduce((sum, p) => sum + (p.netSalary || 0), 0);
+  const totalInsurance = list.reduce((sum, p) => sum + (p.totalInsurance || 0), 0);
+  const totalTax = list.reduce((sum, p) => sum + (p.tax || 0), 0);
+  const totalBonus = list.reduce((sum, p) => sum + (p.bonus || 0), 0);
+  const count = list.length;
+  const avgNetSalary = count > 0 ? Math.round(totalNet / count) : 0;
+
+  res.json({
+    month,
+    departmentId: deptId,
+    branchId: branchId,
+    departments: db.departments || [],
+    branches: db.branches || [],
+    payroll: list,
+    summary: {
+      count,
+      totalGross,
+      totalNet,
+      totalInsurance,
+      totalTax,
+      totalBonus,
+      avgNetSalary
+    }
+  });
+});
+
+app.post('/api/payroll/calculate', (req, res) => {
+  const db = getDB();
+  const month = req.body.month || '11/2026';
+  const standardDays = 26;
+
+  (db.payroll || []).forEach(pay => {
+    if (pay.month === month) {
+      // Find matching attendance
+      const att = (db.attendance || []).find(a => a.employeeCode === pay.employeeCode && a.month === month);
+      const actualDays = att ? att.totalWorkDays : standardDays;
+      const lateDays = att ? att.lateDays : 0;
+      const otHours = att ? att.otHours : 0;
+
+      pay.actualWorkDays = actualDays;
+      pay.calculatedSalary = Math.round((pay.baseSalary / standardDays) * Math.min(actualDays, standardDays));
+      
+      const hourlyRate = pay.baseSalary / (standardDays * 8);
+      pay.otHours = otHours;
+      pay.otSalary = Math.round(hourlyRate * 1.5 * otHours);
+
+      pay.grossSalary = pay.calculatedSalary + pay.allowance + pay.otSalary + (pay.bonus || 0);
+
+      const insuranceBase = Math.min(pay.baseSalary, 36000000);
+      pay.bhxh = Math.round(insuranceBase * 0.08);
+      pay.bhyt = Math.round(insuranceBase * 0.015);
+      pay.bhtn = Math.round(insuranceBase * 0.01);
+      pay.totalInsurance = pay.bhxh + pay.bhyt + pay.bhtn;
+
+      const taxableIncome = Math.max(0, pay.grossSalary - pay.totalInsurance - 11000000);
+      let tax = 0;
+      if (taxableIncome > 0) {
+        if (taxableIncome <= 5000000) tax = taxableIncome * 0.05;
+        else if (taxableIncome <= 10000000) tax = 5000000 * 0.05 + (taxableIncome - 5000000) * 0.1;
+        else if (taxableIncome <= 18000000) tax = 5000000 * 0.05 + 5000000 * 0.1 + (taxableIncome - 10000000) * 0.15;
+        else tax = 5000000 * 0.05 + 5000000 * 0.1 + 8000000 * 0.15 + (taxableIncome - 18000000) * 0.2;
+      }
+      pay.tax = Math.round(tax);
+      pay.penalties = lateDays * 100000;
+      pay.totalDeductions = pay.totalInsurance + pay.tax + pay.penalties + (pay.advance || 0);
+      pay.netSalary = pay.grossSalary - pay.totalDeductions;
+      pay.updatedAt = new Date().toLocaleString('vi-VN');
+    }
+  });
+
+  saveDB(db);
+  res.json({ success: true, message: 'Đã tính toán lại toàn bộ bảng lương thành công!' });
+});
+
+app.get('/api/payroll/payslip/:empCode', (req, res) => {
+  const db = getDB();
+  const empCode = req.params.empCode;
+  const month = req.query.month || '11/2026';
+
+  const pay = (db.payroll || []).find(p => p.employeeCode === empCode && p.month === month);
+  if (!pay) {
+    return res.status(404).json({ error: 'Không tìm thấy phiếu lương của nhân viên này' });
+  }
+
+  const emp = (db.employees || []).find(e => e.code === empCode) || {};
+
+  const payslip = {
+    company: {
+      name: 'CÔNG TY CỔ PHẦN TẬP ĐOÀN ASIN (ASIN GROUP)',
+      address: 'Tầng 12, Tòa nhà Lotte Center, 54 Liễu Giai, Ba Đình, Hà Nội',
+      taxCode: '0108998899',
+      phone: '024 3999 8888'
+    },
+    title: `PHIẾU BÁO LƯƠNG THÁNG ${pay.month}`,
+    date: new Date().toLocaleDateString('vi-VN'),
+    employee: {
+      code: pay.employeeCode,
+      name: pay.employeeName,
+      department: pay.departmentName,
+      position: pay.positionName,
+      branch: pay.branchName,
+      joinDate: emp.joinDate || '—',
+      bankAccount: pay.bankAccount || emp.bankAccount || '19036688990011',
+      bankName: pay.bankName || 'Techcombank'
+    },
+    work: {
+      standardDays: pay.standardDays || 26,
+      actualWorkDays: pay.actualWorkDays || 26,
+      otHours: pay.otHours || 0
+    },
+    earnings: {
+      baseSalary: pay.baseSalary,
+      calculatedSalary: pay.calculatedSalary,
+      allowance: pay.allowance,
+      otSalary: pay.otSalary || 0,
+      bonus: pay.bonus || 0,
+      grossSalary: pay.grossSalary
+    },
+    deductions: {
+      bhxh: pay.bhxh,
+      bhyt: pay.bhyt,
+      bhtn: pay.bhtn,
+      totalInsurance: pay.totalInsurance,
+      tax: pay.tax || 0,
+      penalties: pay.penalties || 0,
+      advance: pay.advance || 0,
+      totalDeductions: pay.totalDeductions
+    },
+    summary: {
+      netSalary: pay.netSalary,
+      amountInWords: numberToVietnameseWords(pay.netSalary),
+      paymentDate: pay.paymentDate || '05/12/2026',
+      status: pay.statusLabel || 'Đã phê duyệt'
+    }
+  };
+
+  res.json(payslip);
+});
+
+app.get('/api/payroll/export-excel', (req, res) => {
+  const db = getDB();
+  const month = req.query.month || '11/2026';
+  const deptId = req.query.departmentId || 'all';
+
+  let list = (db.payroll || []).filter(p => p.month === month);
+  if (deptId !== 'all') {
+    list = list.filter(p => p.departmentId === deptId);
+  }
+
+  const exportRows = list.map(p => ({
+    'Mã NV': p.employeeCode,
+    'Họ và tên': p.employeeName,
+    'Phòng ban': p.departmentName,
+    'Chức danh': p.positionName,
+    'Chi nhánh': p.branchName,
+    'Lương cơ bản (đ)': p.baseSalary,
+    'Phụ cấp (đ)': p.allowance,
+    'Công chuẩn': p.standardDays,
+    'Công thực tế': p.actualWorkDays,
+    'Lương theo công (đ)': p.calculatedSalary,
+    'Giờ OT': p.otHours,
+    'Lương OT (đ)': p.otSalary,
+    'Thưởng / KPI (đ)': p.bonus,
+    'Tổng thu nhập Gross (đ)': p.grossSalary,
+    'BHXH 8% (đ)': p.bhxh,
+    'BHYT 1.5% (đ)': p.bhyt,
+    'BHTN 1% (đ)': p.bhtn,
+    'Tổng BH (đ)': p.totalInsurance,
+    'Thuế TNCN (đ)': p.tax,
+    'Phạt/Khác (đ)': p.penalties,
+    'Tạm ứng (đ)': p.advance,
+    'Tổng khấu trừ (đ)': p.totalDeductions,
+    'LƯƠNG THỰC LĨNH NET (đ)': p.netSalary,
+    'Tài khoản nhận': p.bankAccount,
+    'Ngân hàng': p.bankName,
+    'Trạng thái': p.statusLabel
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(exportRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `Bang_Luong_${month.replace('/', '_')}`);
+  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+  res.setHeader('Content-Disposition', `attachment; filename=Bang_Luong_ASIN_${month.replace('/', '_')}.xlsx`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
+// -------------------------------------------------------------
+// 9. GOOGLE SHEETS LIVE SYNC & ENDPOINTS
 // -------------------------------------------------------------
 const { execSync } = require('child_process');
 

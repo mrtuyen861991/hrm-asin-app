@@ -414,6 +414,68 @@ async function syncAll() {
   const fileUsers = writeCSV('users.csv', userRows);
   runGSheetsCmd(`gsheets mutate import-csv "${SPREADSHEET_ID}" "${fileUsers}" --sheet "Người dùng & Phân quyền"`);
 
+  // 11. BẢNG CHẤM CÔNG (Sheet 11)
+  console.log('Generating: Bảng chấm công theo phòng ban...');
+  const attHeaders = ['Mã NV', 'Họ và tên', 'Phòng ban', 'Chức danh'];
+  for (let d = 1; d <= 30; d++) attHeaders.push(`N${d}`);
+  attHeaders.push('Tổng công TT', 'Phép (P)', 'Không lương (KL)', 'Đi muộn (M)', 'Giờ OT');
+  
+  const attRows = [attHeaders];
+  (db.attendance || []).forEach(a => {
+    const row = [a.employeeCode, a.employeeName, a.departmentName, a.positionName];
+    for (let d = 1; d <= 30; d++) {
+      row.push((a.days && a.days[d]) ? a.days[d] : '—');
+    }
+    row.push(a.totalWorkDays, a.leaveDays, a.unpaidDays, a.lateDays, a.otHours);
+    attRows.push(row);
+  });
+  const fileAtt = writeCSV('attendance.csv', attRows);
+  runGSheetsCmd(`gsheets mutate import-csv "${SPREADSHEET_ID}" "${fileAtt}" --sheet "Bảng chấm công"`);
+
+  // 12. BẢNG TÍNH LƯƠNG (Sheet 12)
+  console.log('Generating: Bảng tính lương & Phiếu lương...');
+  const payHeaders = [
+    'Mã NV', 'Họ và tên', 'Phòng ban', 'Chức danh', 'Chi nhánh',
+    'Lương cơ bản (đ)', 'Phụ cấp (đ)', 'Công chuẩn', 'Công TT', 'Lương theo công (đ)',
+    'Giờ OT', 'Lương OT (đ)', 'Thưởng KPI (đ)', 'Tổng Gross (đ)',
+    'BHXH 8% (đ)', 'BHYT 1.5% (đ)', 'BHTN 1% (đ)', 'Tổng BH 10.5% (đ)',
+    'Thuế TNCN (đ)', 'Khấu trừ khác (đ)', 'Tạm ứng (đ)', 'Tổng khấu trừ (đ)',
+    'THỰC LĨNH NET (đ)', 'Số tài khoản nhận', 'Ngân hàng', 'Trạng thái chi trả'
+  ];
+  const payRows = [payHeaders];
+  (db.payroll || []).forEach(p => {
+    payRows.push([
+      p.employeeCode,
+      p.employeeName,
+      p.departmentName,
+      p.positionName,
+      p.branchName,
+      p.baseSalary,
+      p.allowance,
+      p.standardDays,
+      p.actualWorkDays,
+      p.calculatedSalary,
+      p.otHours,
+      p.otSalary,
+      p.bonus,
+      p.grossSalary,
+      p.bhxh,
+      p.bhyt,
+      p.bhtn,
+      p.totalInsurance,
+      p.tax,
+      p.penalties,
+      p.advance,
+      p.totalDeductions,
+      p.netSalary,
+      p.bankAccount,
+      p.bankName,
+      p.statusLabel
+    ]);
+  });
+  const filePay = writeCSV('payroll.csv', payRows);
+  runGSheetsCmd(`gsheets mutate import-csv "${SPREADSHEET_ID}" "${filePay}" --sheet "Bảng tính lương"`);
+
   // Update Settings in db.json
   const now = new Date().toLocaleString('vi-VN');
   db.settings.googleSheets = {
@@ -432,13 +494,15 @@ async function syncAll() {
       'Quỹ phép năm',
       'Khen thưởng - Kỷ luật',
       'Lịch sử công tác',
-      'Người dùng & Phân quyền'
+      'Người dùng & Phân quyền',
+      'Bảng chấm công',
+      'Bảng tính lương'
     ]
   };
   fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf8');
 
   console.log(`==================================================================`);
-  console.log(`Synchronization complete! All 10 sheets updated successfully.`);
+  console.log(`Synchronization complete! All 12 sheets updated successfully.`);
   console.log(`Spreadsheet URL: https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`);
   console.log(`Last Sync: ${now}`);
   console.log(`==================================================================`);
