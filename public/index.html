@@ -1535,48 +1535,97 @@
           </div>
         </div>
 
-        <!-- 8 Metric Badges matching screenshot 3 -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 8 Metric Badges matching screenshot 3 (Đầy đủ 8 thẻ số liệu thực tế) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+          <!-- Row 1: 4 cards -->
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="users" class="w-4 h-4 text-brand-600"></i>
+              Tổng nhân sự
+            </span>
+            <div class="my-2">
+              <span id="reportKpiTotalEmps" class="text-2xl sm:text-3xl font-extrabold text-slate-900">76</span>
+              <p id="reportKpiEmpChange" class="text-[11px] text-emerald-600 font-semibold mt-0.5">+4 so với đầu kỳ</p>
+            </div>
+          </div>
+
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="user-plus" class="w-4 h-4 text-emerald-600"></i>
+              Tuyển mới trong kỳ
+            </span>
+            <div class="my-2">
+              <span id="reportKpiNewHires" class="text-2xl sm:text-3xl font-extrabold text-slate-900">12</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Nhập vào trong kỳ</p>
+            </div>
+          </div>
+
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="user-minus" class="w-4 h-4 text-rose-500"></i>
+              Nghỉ việc trong kỳ
+            </span>
+            <div class="my-2">
+              <span id="reportKpiResigned" class="text-2xl sm:text-3xl font-extrabold text-slate-900">9</span>
+              <p id="reportKpiResignNote" class="text-[11px] text-slate-400 mt-0.5">7 tự nguyện</p>
+            </div>
+          </div>
+
           <div class="card-soft p-4">
             <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
               <i data-lucide="trending-down" class="w-4 h-4 text-rose-500"></i>
               Tỷ lệ nghỉ việc
             </span>
             <div class="my-2">
-              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">10.8%</span>
-              <p class="text-[11px] text-slate-400 mt-0.5">Nghỉ việc / nhân sự bình quân</p>
+              <span id="reportKpiTurnoverRate" class="text-2xl sm:text-3xl font-extrabold text-slate-900">10.6%</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Nghỉ việc / NS bình quân</p>
             </div>
           </div>
+
+          <!-- Row 2: 4 cards -->
           <div class="card-soft p-4">
             <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
-              <i data-lucide="users" class="w-4 h-4 text-purple-500"></i>
+              <i data-lucide="smile" class="w-4 h-4 text-purple-500"></i>
               Tuổi trung bình
             </span>
             <div class="my-2">
-              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">33</span>
-              <p class="text-[11px] text-slate-400 mt-0.5">24 người dưới 30 tuổi</p>
+              <span id="reportKpiAvgAge" class="text-2xl sm:text-3xl font-extrabold text-slate-900">31</span>
+              <p id="reportKpiUnder30Text" class="text-[11px] text-slate-400 mt-0.5">36 người dưới 30 tuổi</p>
             </div>
           </div>
+
           <div class="card-soft p-4">
             <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
               <i data-lucide="award" class="w-4 h-4 text-blue-500"></i>
               Thâm niên trung bình
             </span>
             <div class="my-2">
-              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">3.8</span>
+              <span id="reportKpiAvgTenure" class="text-2xl sm:text-3xl font-extrabold text-slate-900">4.6</span>
               <span class="text-sm font-semibold text-slate-500"> năm</span>
-              <p class="text-[11px] text-slate-400 mt-0.5">46 người trên 3 năm</p>
+              <p id="reportKpiOver3YearsText" class="text-[11px] text-slate-400 mt-0.5">59 người trên 3 năm</p>
             </div>
           </div>
+
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="venus" class="w-4 h-4 text-pink-500"></i>
+              Tỷ lệ nữ
+            </span>
+            <div class="my-2">
+              <span id="reportKpiFemaleRatio" class="text-2xl sm:text-3xl font-extrabold text-slate-900">50.0%</span>
+              <p id="reportKpiGenderCounts" class="text-[11px] text-slate-400 mt-0.5">38 nữ · 38 nam</p>
+            </div>
+          </div>
+
           <div class="card-soft p-4">
             <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
               <i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i>
               Lương cơ bản TB
             </span>
             <div class="my-2">
-              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">21.7</span>
+              <span id="reportKpiAvgSalary" class="text-2xl sm:text-3xl font-extrabold text-slate-900">20.0</span>
               <span class="text-sm font-semibold text-slate-500"> tr</span>
-              <p class="text-[11px] text-slate-400 mt-0.5">Quỹ lương: 1.74 tỷ / tháng</p>
+              <p id="reportKpiPayrollText" class="text-[11px] text-slate-400 mt-0.5">Quỹ lương: 1.52 tỷ / tháng</p>
             </div>
           </div>
         </div>
@@ -1616,14 +1665,19 @@
             </div>
           </div>
 
-          <!-- Lý do nghỉ việc Donut -->
+          <!-- Lý do nghỉ việc Donut (With center cutout & dynamic legend) -->
           <div class="card-soft p-4 flex flex-col justify-between">
-            <div class="border-b border-slate-100 pb-2 mb-2">
+            <div class="border-b border-slate-100 pb-2 mb-2 flex items-center justify-between">
               <h4 class="text-xs font-bold text-slate-800">Lý do nghỉ việc (Trong kỳ)</h4>
             </div>
-            <div class="h-48 relative">
+            <div class="h-44 relative flex items-center justify-center">
               <canvas id="chartReportResignReasons"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-[10px] text-slate-400 font-medium">Tổng</span>
+                <span id="centerTotalResign" class="text-base font-extrabold text-slate-900 leading-tight">9</span>
+              </div>
             </div>
+            <div id="legendResignReasons" class="mt-2 text-[10px] text-slate-600 space-y-1"></div>
           </div>
 
           <!-- Tháp tuổi Pyramid -->
@@ -1637,37 +1691,60 @@
             </div>
           </div>
 
-          <!-- Trình độ học vấn Donut -->
+          <!-- Trình độ học vấn Donut (With center cutout & dynamic legend) -->
           <div class="card-soft p-4 flex flex-col justify-between">
-            <div class="border-b border-slate-100 pb-2 mb-2">
+            <div class="border-b border-slate-100 pb-2 mb-2 flex items-center justify-between">
               <h4 class="text-xs font-bold text-slate-800">Trình độ học vấn</h4>
             </div>
-            <div class="h-48 relative">
+            <div class="h-44 relative flex items-center justify-center">
               <canvas id="chartReportEducation"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-[10px] text-slate-400 font-medium">Tổng</span>
+                <span id="centerTotalEdu" class="text-base font-extrabold text-slate-900 leading-tight">76</span>
+              </div>
             </div>
+            <div id="legendEducation" class="mt-2 text-[10px] text-slate-600 flex flex-wrap gap-x-2 gap-y-1 justify-center"></div>
           </div>
         </div>
 
-        <!-- Lower Salary Charts: Quỹ lương phòng ban & Lương TB cấp bậc -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Lower 3 Charts: Quỹ lương phòng ban, Lương TB cấp bậc, Loại hợp đồng (Hoàn chỉnh theo Screenshot 3) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <!-- 1. Quỹ lương theo phòng ban -->
           <div class="card-soft p-5">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 border-b border-slate-100 pb-2 gap-1">
               <h4 class="font-bold text-slate-800 text-sm">Quỹ lương theo phòng ban</h4>
-              <span class="text-xs text-slate-400">Lương cơ bản + phụ cấp / tháng</span>
+              <span class="text-[11px] text-slate-400">Lương cơ bản + phụ cấp</span>
             </div>
             <div class="h-64">
               <canvas id="chartReportSalaryDept"></canvas>
             </div>
           </div>
 
+          <!-- 2. Lương trung bình theo cấp bậc (Horizontal Bars matching screenshot 3) -->
           <div class="card-soft p-5">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
-              <h4 class="font-bold text-slate-800 text-sm">Lương trung bình theo cấp bậc</h4>
-              <span class="text-xs text-slate-400">Mức lương thực tế chi trả</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 border-b border-slate-100 pb-2 gap-1">
+              <h4 class="font-bold text-slate-800 text-sm">Lương TB theo cấp bậc</h4>
+              <span class="text-[11px] text-slate-400">Thực tế chi trả</span>
             </div>
             <div class="h-64">
               <canvas id="chartReportSalaryLevel"></canvas>
             </div>
+          </div>
+
+          <!-- 3. Loại hợp đồng Donut (Screenshot 3 card) -->
+          <div class="card-soft p-5 flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 border-b border-slate-100 pb-2 gap-1">
+              <h4 class="font-bold text-slate-800 text-sm">Loại hợp đồng</h4>
+              <span class="text-[11px] text-slate-400">Cơ cấu HĐ lao động</span>
+            </div>
+            <div class="h-44 relative flex items-center justify-center">
+              <canvas id="chartReportContractTypes"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-[10px] text-slate-400 font-medium">Tổng</span>
+                <span id="centerTotalContracts" class="text-base font-extrabold text-slate-900 leading-tight">76</span>
+              </div>
+            </div>
+            <div id="legendContractTypes" class="mt-2 text-[10px] text-slate-600 flex flex-wrap gap-x-2 gap-y-1 justify-center"></div>
           </div>
         </div>
       </section>

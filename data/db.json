@@ -1116,7 +1116,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Kế toán trưởng"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0003",
@@ -1164,7 +1165,8 @@
           "action": "Bổ nhiệm",
           "content": "Phó Tổng Giám đốc điều hành"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0004",
@@ -1212,7 +1214,8 @@
           "action": "Bổ nhiệm",
           "content": "Tổng Giám đốc công ty"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0005",
@@ -1260,7 +1263,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0006",
@@ -1306,7 +1310,8 @@
           "action": "Bổ nhiệm",
           "content": "Trưởng phòng Marketing"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0007",
@@ -1352,7 +1357,8 @@
           "action": "Tiếp nhận & bổ nhiệm",
           "content": "Trưởng phòng Kỹ thuật"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0008",
@@ -1398,7 +1404,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Kế toán viên"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0009",
@@ -1444,7 +1451,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0010",
@@ -1490,7 +1498,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0011",
@@ -1536,7 +1545,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0012",
@@ -1582,7 +1592,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Digital Marketing"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0013",
@@ -1628,7 +1639,8 @@
           "action": "Tiếp nhận bổ nhiệm",
           "content": "Giám đốc Kinh doanh chi nhánh HCM"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0014",
@@ -1674,7 +1686,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Chuyên viên Tuyển dụng"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0015",
@@ -1720,7 +1733,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Chuyên viên C&B"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0016",
@@ -1766,7 +1780,8 @@
           "action": "Ký HĐ 12 tháng",
           "content": "Backend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0017",
@@ -1812,7 +1827,8 @@
           "action": "Ký HĐ 12 tháng",
           "content": "Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0018",
@@ -1859,7 +1875,8 @@
           "action": "Tiếp nhận thử việc",
           "content": "Thử việc 2 tháng"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0019",
@@ -1906,7 +1923,8 @@
           "action": "Tiếp nhận thử việc",
           "content": "Thử việc CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0020",
@@ -1953,7 +1971,8 @@
           "action": "Tiếp nhận thử việc",
           "content": "DevOps"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0021",
@@ -2000,7 +2019,8 @@
           "action": "Tiếp nhận thử việc",
           "content": "Thử việc Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0022",
@@ -2047,7 +2067,8 @@
           "action": "Tiếp nhận thử việc",
           "content": "Kỹ sư Hệ thống"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0023",
@@ -2094,7 +2115,8 @@
           "action": "Tiếp nhận thử việc",
           "content": "UI/UX Designer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0024",
@@ -2144,7 +2166,8 @@
           "action": "Tạm hoãn HĐLĐ",
           "content": "Xin tạm nghỉ việc riêng 3 tháng"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0025",
@@ -2194,7 +2217,8 @@
           "action": "Nghỉ thai sản",
           "content": "Hưởng chế độ BHXH thai sản 6 tháng"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0026",
@@ -2240,7 +2264,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0027",
@@ -2286,7 +2311,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Backend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0028",
@@ -2332,7 +2358,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: QC / QA Tester"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0029",
@@ -2378,7 +2405,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Content Creator"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0030",
@@ -2424,7 +2452,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: UI/UX Designer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0031",
@@ -2470,7 +2499,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kế toán viên"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0032",
@@ -2516,7 +2546,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0033",
@@ -2562,7 +2593,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Backend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0034",
@@ -2608,7 +2640,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: QC / QA Tester"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0035",
@@ -2654,7 +2687,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Content Creator"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0036",
@@ -2700,7 +2734,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: UI/UX Designer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0037",
@@ -2746,7 +2781,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kế toán viên"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0038",
@@ -2792,7 +2828,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0039",
@@ -2838,7 +2875,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Backend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0040",
@@ -2884,7 +2922,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: QC / QA Tester"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0041",
@@ -2930,7 +2969,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Content Creator"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0042",
@@ -2976,7 +3016,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: UI/UX Designer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0043",
@@ -3022,7 +3063,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kế toán viên"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0044",
@@ -3068,7 +3110,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0045",
@@ -3114,7 +3157,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Backend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0046",
@@ -3160,7 +3204,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: QC / QA Tester"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0047",
@@ -3206,7 +3251,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Content Creator"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0048",
@@ -3252,7 +3298,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: UI/UX Designer"
         }
-      ]
+      ],
+      "educationLevel": "Đại học"
     },
     {
       "id": "NV0049",
@@ -3298,7 +3345,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kế toán viên"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0050",
@@ -3344,7 +3392,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Frontend Developer"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0051",
@@ -3390,7 +3439,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0052",
@@ -3436,7 +3486,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0053",
@@ -3482,7 +3533,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Chuyên viên Vận hành"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0054",
@@ -3528,7 +3580,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0055",
@@ -3574,7 +3627,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0056",
@@ -3620,7 +3674,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Chuyên viên Vận hành"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0057",
@@ -3666,7 +3721,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0058",
@@ -3712,7 +3768,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0059",
@@ -3758,7 +3815,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Chuyên viên Vận hành"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0060",
@@ -3804,7 +3862,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Cao đẳng"
     },
     {
       "id": "NV0061",
@@ -3850,7 +3909,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0062",
@@ -3896,7 +3956,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Chuyên viên Vận hành"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0063",
@@ -3942,7 +4003,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0064",
@@ -3988,7 +4050,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0065",
@@ -4034,7 +4097,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Chuyên viên Vận hành"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0066",
@@ -4080,7 +4144,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0067",
@@ -4126,7 +4191,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên CSKH"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0068",
@@ -4172,7 +4238,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Chuyên viên Vận hành"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0069",
@@ -4218,7 +4285,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên Kinh doanh"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0070",
@@ -4264,7 +4332,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kỹ thuật viên IT"
         }
-      ]
+      ],
+      "educationLevel": "Thạc sĩ"
     },
     {
       "id": "NV0071",
@@ -4310,7 +4379,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên KD Miền Trung"
         }
-      ]
+      ],
+      "educationLevel": "Trung cấp"
     },
     {
       "id": "NV0072",
@@ -4356,7 +4426,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kỹ thuật viên IT"
         }
-      ]
+      ],
+      "educationLevel": "Trung cấp"
     },
     {
       "id": "NV0073",
@@ -4402,7 +4473,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên KD Miền Trung"
         }
-      ]
+      ],
+      "educationLevel": "Trung cấp"
     },
     {
       "id": "NV0074",
@@ -4448,7 +4520,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kỹ thuật viên IT"
         }
-      ]
+      ],
+      "educationLevel": "Trung cấp"
     },
     {
       "id": "NV0075",
@@ -4494,7 +4567,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Nhân viên KD Miền Trung"
         }
-      ]
+      ],
+      "educationLevel": "Trung cấp"
     },
     {
       "id": "NV0076",
@@ -4540,7 +4614,8 @@
           "action": "Tiếp nhận làm việc",
           "content": "Vị trí: Kỹ thuật viên IT"
         }
-      ]
+      ],
+      "educationLevel": "Trung cấp"
     },
     {
       "id": "NV0077",
@@ -4593,7 +4668,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Thu nhập chưa phù hợp. Chuyển sang công ty phần mềm quốc tế"
         }
-      ]
+      ],
+      "resignationReason": "Thu nhập chưa phù hợp"
     },
     {
       "id": "NV0078",
@@ -4646,7 +4722,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Chuyển sang công việc mới. Nhận offer công ty mới gần nhà"
         }
-      ]
+      ],
+      "resignationReason": "Thu nhập chưa phù hợp"
     },
     {
       "id": "NV0079",
@@ -4699,7 +4776,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Lý do gia đình / cá nhân. Về quê chăm sóc bố mẹ lớn tuổi"
         }
-      ]
+      ],
+      "resignationReason": "Thu nhập chưa phù hợp"
     },
     {
       "id": "NV0080",
@@ -4752,7 +4830,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Môi trường, quản lý chưa phù hợp. Định hướng công việc không còn phù hợp"
         }
-      ]
+      ],
+      "resignationReason": "Chuyển sang công việc mới"
     },
     {
       "id": "NV0081",
@@ -4805,7 +4884,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Hết hạn hợp đồng. Không gia hạn thêm HĐ xác định thời hạn"
         }
-      ]
+      ],
+      "resignationReason": "Chuyển sang công việc mới"
     },
     {
       "id": "NV0082",
@@ -4858,7 +4938,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Thu nhập chưa phù hợp. Tìm kiếm cơ hội lương cao hơn"
         }
-      ]
+      ],
+      "resignationReason": "Lý do gia đình / cá nhân"
     },
     {
       "id": "NV0083",
@@ -4911,7 +4992,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Lý do gia đình / cá nhân. Kết hôn và định cư ở nước ngoài"
         }
-      ]
+      ],
+      "resignationReason": "Lý do gia đình / cá nhân"
     },
     {
       "id": "NV0084",
@@ -4964,7 +5046,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Chuyển sang công việc mới. Tự khởi nghiệp kinh doanh"
         }
-      ]
+      ],
+      "resignationReason": "Môi trường, quản lý chưa phù hợp"
     },
     {
       "id": "NV0085",
@@ -5017,7 +5100,8 @@
           "action": "Chấm dứt HĐLĐ",
           "content": "Nghỉ việc. Lý do: Thu nhập chưa phù hợp. Xin nghỉ theo nguyện vọng cá nhân"
         }
-      ]
+      ],
+      "resignationReason": "Hết hạn hợp đồng"
     }
   ],
   "leaveRequests": [
@@ -6133,7 +6217,7 @@
       "enabled": true,
       "spreadsheetId": "12DE0YcDFU-4gw7z2K-d4SXxVRRXwvtGYtZrySLEEt0E",
       "sheetUrl": "https://docs.google.com/spreadsheets/d/12DE0YcDFU-4gw7z2K-d4SXxVRRXwvtGYtZrySLEEt0E/edit",
-      "lastSync": "13:45:55 18/11/2026",
+      "lastSync": "15:44:57 18/11/2026",
       "status": "connected",
       "syncedSheets": [
         "Tổng quan & Báo cáo",

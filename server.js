@@ -326,20 +326,28 @@ app.get('/api/stats', (req, res) => {
   let totalAge = 0;
   let maleCount = 0;
   let femaleCount = 0;
-  let totalSalary = 0;
+  let totalBaseSalary = 0;
+  let totalFixedIncome = 0;
 
   activeEmps.forEach(e => {
     totalTenure += (e.tenureYears || 3.8);
     totalAge += (e.age || 32);
     if (e.gender === 'Nữ') femaleCount++;
     else maleCount++;
-    totalSalary += (e.totalIncome || e.baseSalary || 20000000);
+    const base = e.baseSalary || 20000000;
+    const allow = e.allowance || 0;
+    totalBaseSalary += base;
+    totalFixedIncome += (base + allow);
   });
 
-  const avgTenure = activeEmps.length ? (totalTenure / activeEmps.length).toFixed(1) : 0;
-  const avgAge = activeEmps.length ? Math.round(totalAge / activeEmps.length) : 0;
-  const avgSalary = activeEmps.length ? Math.round(totalSalary / activeEmps.length) : 0;
-  const femaleRatio = activeEmps.length ? ((femaleCount / activeEmps.length) * 100).toFixed(1) : 0;
+  const avgTenure = activeEmps.length ? (totalTenure / activeEmps.length).toFixed(1) : '4.6';
+  const avgAge = activeEmps.length ? Math.round(totalAge / activeEmps.length) : 31;
+  const avgBaseSalary = activeEmps.length ? Math.round(totalBaseSalary / activeEmps.length) : 20000000;
+  const avgFixedIncome = activeEmps.length ? Math.round(totalFixedIncome / activeEmps.length) : 22000000;
+  const femaleRatio = activeEmps.length ? ((femaleCount / activeEmps.length) * 100).toFixed(1) : '50.0';
+  const under30Count = activeEmps.filter(e => (e.age || 30) < 30).length;
+  const over3YearsCount = activeEmps.filter(e => (e.tenureYears || 0) >= 3).length;
+  const turnoverRate = (activeEmps.length + resignedEmps.length) ? (((resignedEmps.length) / (activeEmps.length + resignedEmps.length)) * 100).toFixed(1) : '10.6';
 
   // Leave requests pending
   const pendingLeaves = (db.leaveRequests || []).filter(l => l.status === 'pending');
@@ -358,26 +366,30 @@ app.get('/api/stats', (req, res) => {
     }
   });
 
-  // 12 Months Turnover Data (matching screenshot)
+  // 12 Months Turnover Data (matching screenshot 3)
   const months12 = ['T11/25', 'T12/25', 'T1/26', 'T2/26', 'T3/26', 'T4/26', 'T5/26', 'T6/26', 'T7/26', 'T8/26', 'T9/26', 'T10/26', 'T11/26'];
   const joinedData = [0, 1, 1, 1, 0, 0, 3, 1, 1, 2, 3, 1, 0];
   const leftData =   [0, 0, 0, 0, 3, 2, 0, 0, 1, 2, 0, 0, 0];
   const totalByMonth = [73, 74, 75, 71, 69, 69, 72, 72, 72, 72, 75, 76, 76];
+  const monthlyTurnoverRate = leftData.map((l, i) => totalByMonth[i] ? parseFloat(((l / totalByMonth[i]) * 100).toFixed(1)) : 0);
 
-  // Age groups
+  // Age groups & Dynamic Age Pyramid (Nam - Nữ)
   const ageGroups = { '<25': 0, '25-29': 0, '30-34': 0, '35-39': 0, '40-49': 0, '50+': 0 };
   const agePyramid = {
-    male: { '<25': 1, '25-29': 12, '30-34': 15, '35-39': 10, '40-49': 5, '50+': 1 },
-    female: { '<25': 2, '25-29': 14, '30-34': 11, '35-39': 4, '40-49': 1, '50+': 0 }
+    male: { '<25': 0, '25-29': 0, '30-34': 0, '35-39': 0, '40-49': 0, '50+': 0 },
+    female: { '<25': 0, '25-29': 0, '30-34': 0, '35-39': 0, '40-49': 0, '50+': 0 }
   };
   activeEmps.forEach(e => {
     const age = e.age || 30;
-    if (age < 25) ageGroups['<25']++;
-    else if (age <= 29) ageGroups['25-29']++;
-    else if (age <= 34) ageGroups['30-34']++;
-    else if (age <= 39) ageGroups['35-39']++;
-    else if (age <= 49) ageGroups['40-49']++;
-    else ageGroups['50+']++;
+    const g = (e.gender === 'Nữ') ? 'female' : 'male';
+    let group = '50+';
+    if (age < 25) group = '<25';
+    else if (age <= 29) group = '25-29';
+    else if (age <= 34) group = '30-34';
+    else if (age <= 39) group = '35-39';
+    else if (age <= 49) group = '40-49';
+    ageGroups[group]++;
+    agePyramid[g][group]++;
   });
 
   // Tenure groups
@@ -389,6 +401,63 @@ app.get('/api/stats', (req, res) => {
     else if (t < 3) tenureGroups['2-3 năm']++;
     else if (t < 5) tenureGroups['3-5 năm']++;
     else tenureGroups['5+ năm']++;
+  });
+
+  // Dynamic Education Stats from actual records
+  const educationStats = { 'Đại học': 0, 'Cao đẳng': 0, 'Thạc sĩ': 0, 'Trung cấp': 0 };
+  activeEmps.forEach(e => {
+    const edu = e.educationLevel || 'Đại học';
+    educationStats[edu] = (educationStats[edu] || 0) + 1;
+  });
+
+  // Dynamic Resignation Reasons from actual records
+  const resignationReasons = {};
+  resignedEmps.forEach(e => {
+    const r = e.resignationReason || 'Chuyển sang công việc mới';
+    resignationReasons[r] = (resignationReasons[r] || 0) + 1;
+  });
+
+  // Dynamic Department Salary Funds (All departments)
+  const deptSalariesMap = {};
+  const deptEmpCountMap = {};
+  activeEmps.forEach(e => {
+    const dName = e.departmentName || 'Khác';
+    const sal = (e.baseSalary || 0) + (e.allowance || 0);
+    deptSalariesMap[dName] = (deptSalariesMap[dName] || 0) + sal;
+    deptEmpCountMap[dName] = (deptEmpCountMap[dName] || 0) + 1;
+  });
+  const departmentSalaryStats = Object.keys(deptSalariesMap)
+    .map(name => ({
+      name,
+      count: deptEmpCountMap[name] || 0,
+      totalMillion: Math.round(deptSalariesMap[name] / 1000000),
+      avgMillion: Math.round((deptSalariesMap[name] / (deptEmpCountMap[name] || 1)) / 1000000)
+    }))
+    .sort((a, b) => b.totalMillion - a.totalMillion);
+
+  // Dynamic Average Salary by Job Level
+  const levelSalariesMap = {};
+  const levelCountsMap = {};
+  activeEmps.forEach(e => {
+    const lvl = e.level || 'Chuyên viên';
+    const sal = e.baseSalary || 0;
+    levelSalariesMap[lvl] = (levelSalariesMap[lvl] || 0) + sal;
+    levelCountsMap[lvl] = (levelCountsMap[lvl] || 0) + 1;
+  });
+  const levelOrder = ['Giám đốc', 'Trưởng phòng', 'Quản lý', 'Chuyên viên', 'Nhân viên'];
+  const levelSalaryStats = levelOrder
+    .filter(lvl => levelCountsMap[lvl])
+    .map(lvl => ({
+      level: lvl,
+      count: levelCountsMap[lvl],
+      avgSalary: Math.round((levelSalariesMap[lvl] / levelCountsMap[lvl]) / 1000000)
+    }));
+
+  // Dynamic Contract Types Breakdown
+  const contractTypesBreakdown = {};
+  activeEmps.forEach(e => {
+    const cType = e.contractType || 'HĐ xác định thời hạn';
+    contractTypesBreakdown[cType] = (contractTypesBreakdown[cType] || 0) + 1;
   });
 
   // Branch breakdown
@@ -413,19 +482,30 @@ app.get('/api/stats', (req, res) => {
       maternityLeaveCount: maternityLeaveEmps.length, // 1
       resignedCount: resignedEmps.length, // 9
       totalAll: emps.length, // 85
+      newThisPeriod: 12,
       newThisMonth: 0,
       leftThisMonth: 0,
-      turnoverRate12M: 10.9,
-      expiringContracts: 2,
-      overdueContracts: 5,
-      probationExpiringSoon: 5,
+      turnoverRate12M: parseFloat(turnoverRate),
+      expiringContracts: expiringContractsCount,
+      overdueContracts: overdueContractsCount,
+      probationExpiringSoon: probationExpiringCount,
       birthdaysThisMonth: 6,
       birthdaysPassed: 3,
       avgTenure: avgTenure,
       avgAge: avgAge,
-      avgSalary: avgSalary,
-      totalPayroll: totalSalary,
+      under30Count: under30Count,
+      over3YearsCount: over3YearsCount,
+      avgSalary: avgBaseSalary,
+      avgSalaryMillion: (avgBaseSalary / 1000000).toFixed(1),
+      avgFixedIncome: avgFixedIncome,
+      avgFixedIncomeMillion: (avgFixedIncome / 1000000).toFixed(1),
+      totalPayroll: totalBaseSalary,
+      totalPayrollBillion: (totalBaseSalary / 1000000000).toFixed(2),
+      totalFixedIncome: totalFixedIncome,
+      totalFixedIncomeBillion: (totalFixedIncome / 1000000000).toFixed(2),
       femaleRatio: femaleRatio,
+      femaleCount: femaleCount,
+      maleCount: maleCount,
       pendingLeavesCount: pendingLeaves.length,
       vacantPositions: vacantPositionsCount || 7,
       totalPositionsPlanned: totalPositionsPlanned || 80,
@@ -439,26 +519,18 @@ app.get('/api/stats', (req, res) => {
       joinedData,
       leftData,
       totalByMonth,
+      monthlyTurnoverRate,
       branchStats,
       genderStats: { male: maleCount, female: femaleCount },
       departmentStats,
+      departmentSalaryStats,
+      levelSalaryStats,
+      contractTypesBreakdown,
       ageGroups,
       agePyramid,
       tenureGroups,
-      educationStats: { 'Trung cấp': 6, 'Cao đẳng': 12, 'Đại học': 48, 'Thạc sĩ': 10 },
-      resignationReasons: {
-        'Thu nhập chưa phù hợp': 3,
-        'Chuyển sang công việc mới': 2,
-        'Lý do gia đình / cá nhân': 2,
-        'Môi trường, quản lý chưa phù hợp': 1,
-        'Hết hạn hợp đồng': 1
-      },
-      contractTypesBreakdown: {
-        'HĐ không xác định thời hạn': 42,
-        'HĐ xác định thời hạn 36 tháng': 24,
-        'HĐ xác định thời hạn 12 tháng': 4,
-        'HĐ thử việc 2 tháng': 6
-      }
+      educationStats,
+      resignationReasons
     }
   });
 });
