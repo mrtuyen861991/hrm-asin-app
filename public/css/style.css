@@ -1,0 +1,190 @@
+/* style.css - Custom enhancements for ASIN GROUP HRM */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --sidebar-width: 260px;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Sidebar Active states */
+.sidebar-link {
+  transition: all 0.2s ease;
+}
+.sidebar-link.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+.sidebar-link.active .sidebar-icon {
+  color: #2563eb;
+}
+
+/* Cards & Badges */
+.card-soft {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-soft:hover {
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+}
+
+/* KPI Card Sparklines */
+.sparkline-container {
+  height: 38px;
+  width: 100%;
+}
+
+/* Org Chart Hierarchy Styling */
+.org-chart-wrapper {
+  overflow: auto;
+  cursor: grab;
+  user-select: none;
+  min-height: 500px;
+  background: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.org-chart-wrapper:active {
+  cursor: grabbing;
+}
+
+.org-tree, .org-tree ul {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  padding: 1.5rem 0 0 0;
+  margin: 0;
+  list-style: none;
+}
+.org-tree ul::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  border-left: 2px solid #cbd5e1;
+  width: 0;
+  height: 1.5rem;
+}
+.org-tree li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 1.5rem 0.75rem 0 0.75rem;
+}
+.org-tree li::before, .org-tree li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 50%;
+  border-top: 2px solid #cbd5e1;
+  width: 50%;
+  height: 1.5rem;
+}
+.org-tree li::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid #cbd5e1;
+}
+.org-tree li:only-child::after, .org-tree li:only-child::before {
+  display: none;
+}
+.org-tree li:only-child {
+  padding-top: 0;
+}
+.org-tree li:first-child::before, .org-tree li:last-child::after {
+  border: 0 none;
+}
+.org-tree li:last-child::before {
+  border-right: 2px solid #cbd5e1;
+  border-radius: 0 5px 0 0;
+}
+.org-tree li:first-child::after {
+  border-radius: 5px 0 0 0;
+}
+
+.org-node {
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  transition: all 0.2s ease;
+  min-width: 190px;
+  max-width: 240px;
+  cursor: pointer;
+  z-index: 10;
+}
+.org-node:hover {
+  transform: translateY(-2px);
+  border-color: #3b82f6;
+  box-shadow: 0 10px 15px -3px rgb(59 130 246 / 0.15);
+}
+.org-node.root-node {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+/* Modal animation */
+.modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+.modal-content {
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Mobile Bottom Bar Safe Area */
+.mobile-nav-bar {
+  box-shadow: 0 -4px 10px -1px rgb(0 0 0 / 0.05);
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+/* Tooltip animation */
+.tooltip-custom {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.has-tooltip:hover .tooltip-custom {
+  visibility: visible;
+  opacity: 1;
+}

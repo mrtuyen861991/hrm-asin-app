@@ -1,0 +1,2754 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ASIN GROUP - Quản lý hồ sơ nhân sự</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS (xlsx) for client-side previews -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+  <!-- Mobile Top Header Bar -->
+  <header class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-2">
+      <button id="mobileMenuBtn" class="p-2 -ml-2 text-slate-600 hover:text-brand-600 focus:outline-none">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-sm leading-tight">ASIN GROUP</h1>
+          <p class="text-[10px] text-slate-500">Quản lý nhân sự</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleNotificationDropdown()" class="relative p-2 text-slate-600 hover:text-slate-900">
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        <span id="mobileNotifBadge" class="absolute top-1 right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">12</span>
+      </button>
+      <div class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xs">
+        TV
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Sidebar (Desktop & Mobile Drawer) -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
+    <div>
+      <!-- Brand Logo -->
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+            <i data-lucide="box" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="font-extrabold text-slate-900 text-base tracking-tight leading-tight">ASIN GROUP</h2>
+            <p class="text-xs text-slate-500 font-medium">Quản lý hồ sơ nhân sự</p>
+          </div>
+        </div>
+        <button id="closeSidebarBtn" class="md:hidden p-1 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-210px)]">
+        <a href="#dashboard" onclick="navigate('dashboard')" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="layout-grid" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Tổng quan</span>
+        </a>
+
+        <a href="#employees" onclick="navigate('employees')" class="sidebar-link flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <div class="flex items-center gap-3">
+            <i data-lucide="users" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+            <span>Nhân viên</span>
+          </div>
+          <span id="sidebarEmpCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">76</span>
+        </a>
+
+        <a href="#departments" onclick="navigate('departments')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="network" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Phòng ban</span>
+        </a>
+
+        <a href="#branches" onclick="navigate('branches')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="building-2" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Chi nhánh</span>
+        </a>
+
+        <a href="#positions" onclick="navigate('positions')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="badge-percent" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Vị trí – Chức danh</span>
+        </a>
+
+        <a href="#leaves" onclick="navigate('leaves')" class="sidebar-link flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <div class="flex items-center gap-3">
+            <i data-lucide="calendar-check" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+            <span>Nghỉ phép</span>
+          </div>
+          <span id="sidebarLeaveBadge" class="bg-rose-500 text-white text-xs px-1.5 py-0.2 rounded-full font-bold">2</span>
+        </a>
+
+        <a href="#reports" onclick="navigate('reports')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Báo cáo</span>
+        </a>
+
+        <!-- Section: QUẢN TRỊ -->
+        <div class="pt-4 pb-1 px-3">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quản trị</p>
+        </div>
+
+        <a href="#users" onclick="navigate('users')" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="user-cog" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Người dùng</span>
+        </a>
+
+        <a href="#settings" onclick="navigate('settings')" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="settings" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Cài đặt</span>
+        </a>
+
+        <!-- Section: KHÁC -->
+        <div class="pt-3 pb-1 px-3">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Khác</p>
+        </div>
+
+        <a href="#guide" onclick="navigate('guide')" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <i data-lucide="help-circle" class="w-4 h-4 sidebar-icon text-slate-400"></i>
+          <span>Hướng dẫn</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Bottom Sidebar Card -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-3 shadow-sm mb-3">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="w-5 h-5 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs">
+            <i data-lucide="info" class="w-3 h-3"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800">ASIN GROUP</span>
+        </div>
+        <p class="text-[11px] text-slate-500 pl-7">76 nhân sự • 12 phòng ban</p>
+      </div>
+
+      <button onclick="logoutPrompt()" class="w-full flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-white hover:border-slate-300 transition shadow-xs">
+        <i data-lucide="log-out" class="w-3.5 h-3.5 text-slate-500"></i>
+        <span>Đăng xuất</span>
+      </button>
+      <p class="text-center text-[10px] text-slate-400 mt-2">Version 1.0</p>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay for Mobile -->
+  <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 hidden md:hidden"></div>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
+
+    <!-- Top Navigation Bar (Desktop) -->
+    <header class="hidden md:flex items-center justify-between h-16 px-8 bg-white border-b border-slate-200 sticky top-0 z-20 shadow-xs">
+      <!-- Search Input -->
+      <div class="relative w-96">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input 
+          id="globalSearchInput" 
+          type="text" 
+          placeholder="Tìm nhân viên, phòng ban... (Ctrl + K)" 
+          class="w-full pl-10 pr-12 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition"
+        >
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded">Ctrl K</span>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-4">
+        <!-- Live Sync Status / Refresh -->
+        <button onclick="refreshData()" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-xl transition" title="Làm mới dữ liệu">
+          <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Google Sheets Sync quick badge -->
+        <div class="flex items-center gap-1.5">
+          <button onclick="openGoogleSheetsSyncModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-xl text-xs font-semibold hover:bg-emerald-100 transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Google Sheets</span>
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/12DE0YcDFU-4gw7z2K-d4SXxVRRXwvtGYtZrySLEEt0E/edit?usp=drivesdk" target="_blank" class="p-1.5 text-emerald-700 hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition" title="Mở trực tiếp trên Google Sheets">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <!-- Notification Bell with Dropdown -->
+        <div class="relative">
+          <button id="notifBellBtn" onclick="toggleNotificationDropdown()" class="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span id="headerNotifBadge" class="absolute top-1.5 right-1.5 bg-rose-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">12</span>
+          </button>
+
+          <!-- Notifications Dropdown Panel -->
+          <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-4 animate-in fade-in zoom-in-95">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-slate-900 text-sm">Thông báo & Cảnh báo</h4>
+                <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full font-bold">12</span>
+              </div>
+              <button onclick="markAllNotificationsRead()" class="text-xs text-brand-600 hover:underline">Đánh dấu đã đọc</button>
+            </div>
+            <div id="notifList" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+              <!-- Dynamically populated notifications -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Role & User Profile Dropdown -->
+        <div class="relative">
+          <button id="userProfileBtn" onclick="toggleUserDropdown()" class="flex items-center gap-3 p-1.5 hover:bg-slate-100 rounded-xl transition">
+            <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              TV
+            </div>
+            <div class="text-left hidden lg:block">
+              <p id="headerUserName" class="text-xs font-bold text-slate-800 leading-tight">Quản trị viên</p>
+              <p id="headerUserRole" class="text-[11px] text-slate-500">Quản trị viên</p>
+            </div>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+          </button>
+
+          <!-- User Menu Dropdown -->
+          <div id="userDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-3">
+            <div class="pb-2 border-b border-slate-100 mb-2">
+              <p class="text-xs font-bold text-slate-800">Mô phỏng phân quyền (RBAC):</p>
+              <div class="mt-2 space-y-1">
+                <button onclick="switchRole('admin')" class="w-full text-left px-2.5 py-1.5 text-xs rounded-lg flex items-center justify-between hover:bg-brand-50 text-slate-700">
+                  <span class="font-medium">👑 Quản trị viên (Toàn quyền)</span>
+                  <span id="roleCheckAdmin" class="text-brand-600 font-bold">✓</span>
+                </button>
+                <button onclick="switchRole('hr')" class="w-full text-left px-2.5 py-1.5 text-xs rounded-lg flex items-center justify-between hover:bg-brand-50 text-slate-700">
+                  <span class="font-medium">💼 Nhân sự (HR) - Lê Diệu Nhung</span>
+                  <span id="roleCheckHR" class="text-brand-600 font-bold hidden">✓</span>
+                </button>
+                <button onclick="switchRole('viewer')" class="w-full text-left px-2.5 py-1.5 text-xs rounded-lg flex items-center justify-between hover:bg-brand-50 text-slate-700">
+                  <span class="font-medium">👁️ Chỉ xem (Chi nhánh HCM)</span>
+                  <span id="roleCheckViewer" class="text-brand-600 font-bold hidden">✓</span>
+                </button>
+              </div>
+            </div>
+            <div class="pt-1">
+              <button onclick="openChangePasswordModal()" class="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-2">
+                <i data-lucide="key" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>Đổi mật khẩu</span>
+              </button>
+              <button onclick="logoutPrompt()" class="w-full text-left px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 rounded-xl flex items-center gap-2 font-medium">
+                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- App Views Container -->
+    <div class="p-4 sm:p-6 lg:p-8 flex-1 overflow-x-hidden">
+      <!-- 1. DASHBOARD VIEW -->
+      <section id="view-dashboard" class="app-view space-y-6">
+        <!-- Greeting & Top Filter Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Chào buổi trưa, Quản trị viên</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Hôm nay Chủ nhật, 15/11/2026 • <span class="font-semibold text-brand-600">76</span> nhân sự đang làm việc</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="dashboardBranchFilter" onchange="loadDashboardStats()" class="bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-xs">
+              <option value="all">Tất cả chi nhánh</option>
+              <option value="HN">Trụ sở chính Hà Nội</option>
+              <option value="HCM">Chi nhánh TP. Hồ Chí Minh</option>
+              <option value="DN">Chi nhánh Đà Nẵng</option>
+            </select>
+            <button onclick="openAddEmployeeModal()" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-sm transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Thêm nhân viên</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 8 Top KPI Cards (matching screenshot 12) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <!-- Card 1: Tổng nhân sự -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="users" class="w-4 h-4 text-brand-500"></i>
+                Tổng nhân sự
+              </span>
+            </div>
+            <div class="my-2">
+              <span id="kpiTotalEmp" class="text-2xl sm:text-3xl font-extrabold text-slate-900">76</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">0 so với cuối tháng trước</p>
+            </div>
+            <div class="sparkline-container">
+              <canvas id="sparklineTotalEmp"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 2: Nhân viên mới tháng này -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="user-plus" class="w-4 h-4 text-emerald-500"></i>
+                Nhân viên mới tháng này
+              </span>
+            </div>
+            <div class="my-2">
+              <span id="kpiNewEmp" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">-1 so với tháng trước</p>
+            </div>
+            <div class="sparkline-container">
+              <canvas id="sparklineNewEmp"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 3: Nghỉ việc tháng này -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="user-minus" class="w-4 h-4 text-rose-500"></i>
+                Nghỉ việc tháng này
+              </span>
+            </div>
+            <div class="my-2">
+              <span id="kpiLeftEmp" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Tỷ lệ 12 tháng: 10.9%</p>
+            </div>
+            <div class="sparkline-container">
+              <canvas id="sparklineLeftEmp"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 4: Hợp đồng sắp hết hạn -->
+          <div onclick="navigateWithTab('employees', 'all')" class="card-soft p-4 flex flex-col justify-between cursor-pointer border-amber-200/60 bg-gradient-to-b from-amber-50/20 to-white">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                <i data-lucide="file-clock" class="w-4 h-4 text-amber-500"></i>
+                Hợp đồng sắp hết hạn
+              </span>
+              <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Cần xử lý</span>
+            </div>
+            <div class="my-2">
+              <span id="kpiExpiringContracts" class="text-2xl sm:text-3xl font-extrabold text-slate-900">2</span>
+              <p class="text-[11px] text-amber-600 font-medium mt-0.5">5 đã quá hạn</p>
+            </div>
+            <div class="sparkline-container">
+              <canvas id="sparklineContracts"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 5: Đang thử việc -->
+          <div onclick="navigateWithTab('employees', 'probation')" class="card-soft p-4 flex flex-col justify-between cursor-pointer border-blue-200/60 bg-gradient-to-b from-blue-50/20 to-white">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                <i data-lucide="hourglass" class="w-4 h-4 text-blue-500"></i>
+                Đang thử việc
+              </span>
+              <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Cần xử lý</span>
+            </div>
+            <div class="my-2 flex items-baseline justify-between">
+              <span id="kpiProbationCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900">6</span>
+              <span class="text-xs text-slate-500 font-medium">7.9% nhân sự</span>
+            </div>
+            <p class="text-[11px] text-blue-600 font-medium">5 người hết thử việc trong 14 ngày</p>
+          </div>
+
+          <!-- Card 6: Sinh nhật tháng này -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="cake" class="w-4 h-4 text-pink-500"></i>
+                Sinh nhật tháng này
+              </span>
+              <span class="text-[10px] text-pink-600 font-semibold">Đã qua 3/6</span>
+            </div>
+            <div class="my-2">
+              <span id="kpiBirthdayCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900">6</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Tháng 11 • còn 3 người</p>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-pink-500 h-full rounded-full" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <!-- Card 7: Thâm niên trung bình -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="award" class="w-4 h-4 text-purple-500"></i>
+                Thâm niên trung bình
+              </span>
+            </div>
+            <div class="my-2">
+              <span id="kpiAvgTenure" class="text-2xl sm:text-3xl font-extrabold text-slate-900">3,8</span>
+              <span class="text-sm font-semibold text-slate-500"> năm</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Tuổi trung bình: 32.6</p>
+            </div>
+            <div class="sparkline-container">
+              <canvas id="sparklineTenure"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 8: Đơn nghỉ chờ duyệt -->
+          <div onclick="navigate('leaves')" class="card-soft p-4 flex flex-col justify-between cursor-pointer border-emerald-200/60 bg-gradient-to-b from-emerald-50/20 to-white">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                <i data-lucide="calendar-off" class="w-4 h-4 text-emerald-500"></i>
+                Đơn nghỉ chờ duyệt
+              </span>
+              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Cần xử lý</span>
+            </div>
+            <div class="my-2">
+              <span id="kpiPendingLeaves" class="text-2xl sm:text-3xl font-extrabold text-slate-900">2</span>
+              <p class="text-[11px] text-emerald-700 font-medium mt-0.5">0 người đang nghỉ hôm nay</p>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Chart: Biến động nhân sự 12 tháng -->
+        <div class="card-soft p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-4 h-4 text-brand-600"></i>
+                Biến động nhân sự 12 tháng
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Thống kê tuyển mới, nghỉ việc và tổng quy mô nhân sự theo từng tháng</p>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-medium mt-2 sm:mt-0">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-xs bg-brand-500"></span> Vào làm</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-xs bg-rose-400"></span> Nghỉ việc</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-emerald-500"></span> Tổng nhân sự</span>
+            </div>
+          </div>
+          <div class="h-64 sm:h-72 w-full">
+            <canvas id="chartHeadcount12Months"></canvas>
+          </div>
+        </div>
+
+        <!-- 4 Sub-Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Donut: Theo chi nhánh -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-3">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="building" class="w-3.5 h-3.5 text-slate-500"></i>
+                Theo chi nhánh
+              </h4>
+            </div>
+            <div class="h-44 relative">
+              <canvas id="chartBranchesDonut"></canvas>
+            </div>
+            <div class="flex justify-around text-[11px] text-slate-600 mt-2 font-medium">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> Hà Nội</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> TP. HCM</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Đà Nẵng</span>
+            </div>
+          </div>
+
+          <!-- Donut: Giới tính -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-3">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-slate-500"></i>
+                Giới tính
+              </h4>
+            </div>
+            <div class="h-44 relative">
+              <canvas id="chartGenderDonut"></canvas>
+            </div>
+            <div class="flex justify-around text-[11px] text-slate-600 mt-2 font-medium">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Nam (57.9%)</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-pink-500"></span> Nữ (42.1%)</span>
+            </div>
+          </div>
+
+          <!-- Bar: Độ tuổi -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-3">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="users-round" class="w-3.5 h-3.5 text-slate-500"></i>
+                Độ tuổi
+              </h4>
+            </div>
+            <div class="h-44">
+              <canvas id="chartAgeBar"></canvas>
+            </div>
+            <p class="text-[10px] text-center text-slate-400 mt-1">Đa số độ tuổi 25 - 34 chiếm 62%</p>
+          </div>
+
+          <!-- Bar: Thâm niên -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-3">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="hourglass" class="w-3.5 h-3.5 text-slate-500"></i>
+                Thâm niên
+              </h4>
+            </div>
+            <div class="h-44">
+              <canvas id="chartTenureBar"></canvas>
+            </div>
+            <p class="text-[10px] text-center text-slate-400 mt-1">Nhân sự >5 năm chiếm tỷ trọng cao</p>
+          </div>
+        </div>
+
+        <!-- Horizontal Bar: Nhân sự theo phòng ban -->
+        <div class="card-soft p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-brand-600"></i>
+              Nhân sự theo phòng ban
+            </h4>
+            <span class="text-xs text-slate-500">Đang làm việc</span>
+          </div>
+          <div class="h-64">
+            <canvas id="chartDepartmentBar"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. EMPLOYEES VIEW -->
+      <section id="view-employees" class="app-view hidden space-y-5">
+        <!-- Header & Action Buttons -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Nhân viên</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">76 nhân sự đang làm việc • 3 chi nhánh • 12 phòng ban</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="openImportExcelModal()" class="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition">
+              <i data-lucide="upload" class="w-4 h-4 text-slate-500"></i>
+              <span>Nhập Excel</span>
+            </button>
+            <a href="/api/export-excel" download class="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition">
+              <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
+              <span>Xuất Excel</span>
+            </a>
+            <button onclick="openAddEmployeeModal()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Thêm nhân viên</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Tabs Bar (matching screenshot 11) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 text-xs sm:text-sm font-medium">
+          <button onclick="setEmployeeTab('working_all')" id="empTab-working_all" class="emp-tab-btn active px-3.5 py-2 rounded-xl bg-brand-600 text-white font-bold whitespace-nowrap shadow-xs">
+            Đang làm việc (tất cả) <span class="badge-count ml-1 opacity-90">76</span>
+          </button>
+          <button onclick="setEmployeeTab('working')" id="empTab-working" class="emp-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Đang làm việc <span class="badge-count ml-1">68</span>
+          </button>
+          <button onclick="setEmployeeTab('probation')" id="empTab-probation" class="emp-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Thử việc <span class="badge-count ml-1">6</span>
+          </button>
+          <button onclick="setEmployeeTab('temporary_leave')" id="empTab-temporary_leave" class="emp-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Tạm nghỉ <span class="badge-count ml-1">1</span>
+          </button>
+          <button onclick="setEmployeeTab('maternity_leave')" id="empTab-maternity_leave" class="emp-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Nghỉ thai sản <span class="badge-count ml-1">1</span>
+          </button>
+          <button onclick="setEmployeeTab('resigned')" id="empTab-resigned" class="emp-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Đã nghỉ việc <span class="badge-count ml-1">9</span>
+          </button>
+          <button onclick="setEmployeeTab('all')" id="empTab-all" class="emp-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Tất cả <span class="badge-count ml-1">85</span>
+          </button>
+        </div>
+
+        <!-- Filter Form Row -->
+        <div class="card-soft p-3 sm:p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="relative lg:col-span-2">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+              <input 
+                id="empSearchInput" 
+                type="text" 
+                oninput="onEmployeeSearchChange()" 
+                placeholder="Tìm theo tên, mã NV, SĐT, email, CCCD..." 
+                class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              >
+            </div>
+            <div>
+              <select id="empBranchSelect" onchange="loadEmployeesList()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+                <option value="all">Tất cả chi nhánh</option>
+                <option value="HN">Trụ sở chính Hà Nội</option>
+                <option value="HCM">Chi nhánh TP. Hồ Chí Minh</option>
+                <option value="DN">Chi nhánh Đà Nẵng</option>
+              </select>
+            </div>
+            <div>
+              <select id="empDeptSelect" onchange="loadEmployeesList()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+                <option value="all">Tất cả phòng ban</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="empPositionSelect" onchange="loadEmployeesList()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+                <option value="all">Tất cả vị trí</option>
+              </select>
+              <button onclick="resetEmployeeFilters()" class="p-2 border border-slate-200 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-50" title="Đặt lại bộ lọc">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Employees Table Card -->
+        <div class="card-soft overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] tracking-wider">
+                <tr>
+                  <th class="p-3.5 w-10 text-center">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllEmployees(this)" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                  </th>
+                  <th class="p-3.5">Nhân viên</th>
+                  <th class="p-3.5">Phòng ban</th>
+                  <th class="p-3.5">Vị trí</th>
+                  <th class="p-3.5">Liên hệ</th>
+                  <th class="p-3.5">Ngày vào làm</th>
+                  <th class="p-3.5">Hợp đồng</th>
+                  <th class="p-3.5">Trạng thái</th>
+                  <th class="p-3.5 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="employeesTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination / Summary Footer -->
+          <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div>
+              Hiển thị <span id="empShowingCount" class="font-bold text-slate-700">1-12</span> / <span id="empTotalCount" class="font-bold text-slate-700">76</span> nhân viên
+            </div>
+            <div id="empPagination" class="flex items-center gap-1">
+              <!-- Pagination buttons -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. DEPARTMENTS VIEW -->
+      <section id="view-departments" class="app-view hidden space-y-6">
+        <!-- Top KPIs -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Quản lý phòng ban</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Quản lý cơ cấu tổ chức và các phòng ban trong công ty</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openOrgChartModal()" class="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs">
+              <i data-lucide="git-fork" class="w-4 h-4 text-brand-600"></i>
+              <span>Xem sơ đồ tổ chức</span>
+            </button>
+            <button onclick="openAddDepartmentModal()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Thêm phòng ban</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI cards matching screenshot 8 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-4 h-4 text-brand-500"></i>
+              Tổng phòng ban
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">12</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">0 phòng ban mới trong năm</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="users" class="w-4 h-4 text-emerald-500"></i>
+              Tổng nhân viên
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">76</span>
+              <p class="text-[11px] text-emerald-600 mt-0.5 font-medium">↑ 0% so với tháng trước</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="user-check" class="w-4 h-4 text-amber-500"></i>
+              Có trưởng phòng
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">11</span>
+              <p class="text-[11px] text-amber-600 mt-0.5 font-medium">1 phòng ban chưa có trưởng phòng</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="activity" class="w-4 h-4 text-purple-500"></i>
+              Đang hoạt động
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">11</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">1 phòng ban tạm ngưng</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Org Chart Preview Banner Card (with 1-click open interactive full chart) -->
+        <div class="card-soft p-5 bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/30 border-blue-100">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="sitemap" class="w-5 h-5 text-brand-600"></i>
+              <h3 class="font-bold text-slate-800 text-sm">Cơ cấu tổ chức tự động</h3>
+            </div>
+            <button onclick="openOrgChartModal()" class="text-xs text-brand-600 font-semibold hover:underline flex items-center gap-1">
+              <span>Xem sơ đồ chi tiết (Zoom / Pan)</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <!-- Mini preview hierarchy nodes -->
+          <div class="overflow-x-auto py-2">
+            <div class="flex items-center justify-center min-w-[700px]">
+              <div class="flex flex-col items-center">
+                <div class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-2">
+                  <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                  <span>ASIN GROUP (Ngô Mai Trang - CEO)</span>
+                </div>
+                <div class="w-0.5 h-4 bg-slate-300"></div>
+                <div class="flex items-center gap-8">
+                  <div class="flex flex-col items-center">
+                    <div class="px-2.5 py-1 bg-blue-100 text-blue-800 border border-blue-200 rounded-md text-[11px] font-semibold">Trụ sở Hà Nội (45)</div>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <div class="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-semibold">Chi nhánh TP. HCM (23)</div>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <div class="px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-200 rounded-md text-[11px] font-semibold">Chi nhánh Đà Nẵng (8)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content: Departments Table + Right Preview Panel Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 card-soft overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+              <input id="deptSearchInput" oninput="filterDepartments()" type="text" placeholder="Tìm kiếm phòng ban..." class="text-xs sm:text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl w-64 focus:outline-none">
+              <select id="deptBranchFilter" onchange="filterDepartments()" class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">Tất cả chi nhánh</option>
+                <option value="HN">Trụ sở chính Hà Nội</option>
+                <option value="HCM">Chi nhánh TP. HCM</option>
+                <option value="DN">Chi nhánh Đà Nẵng</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3.5">Phòng ban</th>
+                    <th class="p-3.5">Trưởng phòng</th>
+                    <th class="p-3.5 text-center">Nhân viên</th>
+                    <th class="p-3.5 text-center">Vị trí</th>
+                    <th class="p-3.5">Trạng thái</th>
+                    <th class="p-3.5 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="departmentsTableBody" class="divide-y divide-slate-100">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Detail Panel of Selected Department -->
+          <div id="deptDetailPanel" class="card-soft p-5 space-y-4">
+            <!-- Selected dept detail -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. BRANCHES VIEW -->
+      <section id="view-branches" class="app-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Chi nhánh</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Mạng lưới văn phòng, chi nhánh và quy mô nhân sự từng nơi</p>
+          </div>
+          <button onclick="openAddBranchModal()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Thêm chi nhánh</span>
+          </button>
+        </div>
+
+        <!-- 4 Top KPIs matching screenshot 4 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="building-2" class="w-4 h-4 text-brand-500"></i>
+              Chi nhánh / văn phòng
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">3</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">0 tạm ngưng</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="users" class="w-4 h-4 text-emerald-500"></i>
+              Tổng nhân sự
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">76</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Trên 12 phòng ban</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
+              Quy mô lớn nhất
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">HN</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">45 nhân sự • 59.2%</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="user-check" class="w-4 h-4 text-purple-500"></i>
+              Vào làm / nghỉ (12 tháng)
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">13 / 8</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Tuyển mới / nghỉ việc</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Branch Cards Grid (Hà Nội, TP. HCM, Đà Nẵng) matching screenshot 4 -->
+        <div id="branchCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Lower Charts: So sánh chi nhánh & Quỹ lương theo chi nhánh -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="card-soft p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-brand-600"></i>
+                So sánh chi nhánh
+              </h4>
+              <span class="text-xs text-slate-400">Nhân sự hiện tại • Vào làm & nghỉ việc 12T</span>
+            </div>
+            <div class="h-60">
+              <canvas id="chartBranchCompare"></canvas>
+            </div>
+          </div>
+
+          <div class="card-soft p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="banknote" class="w-4 h-4 text-purple-600"></i>
+                Quỹ lương theo chi nhánh
+              </h4>
+              <span class="text-xs text-slate-400">Lương cơ bản + phụ cấp / tháng</span>
+            </div>
+            <div class="h-60">
+              <canvas id="chartBranchSalary"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. POSITIONS VIEW (Vị trí - Chức danh & Định biên) -->
+      <section id="view-positions" class="app-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Vị trí – Chức danh</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Định biên nhân sự, cấp bậc và khung lương cho từng vị trí</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/api/export-excel" download class="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs">
+              <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
+              <span>Xuất Excel</span>
+            </a>
+            <button onclick="openAddPositionModal()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Thêm vị trí</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI cards matching screenshot 5 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="badge-percent" class="w-4 h-4 text-brand-500"></i>
+              Tổng vị trí
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">31</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">6 cấp bậc</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="target" class="w-4 h-4 text-purple-500"></i>
+              Tổng định biên
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">80</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Số người cần theo kế hoạch</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="user-check" class="w-4 h-4 text-emerald-500"></i>
+              Đang đảm nhiệm
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">76</span>
+              <p class="text-[11px] text-emerald-600 mt-0.5 font-medium">Lấp đầy 95% định biên</p>
+            </div>
+          </div>
+          <div class="card-soft p-4 border-amber-200/80 bg-amber-50/20">
+            <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>
+              Còn thiếu
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">7</span>
+              <p class="text-[11px] text-amber-600 mt-0.5 font-medium">3 vị trí vượt định biên / thiếu người</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Position Table & Detail Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 card-soft overflow-hidden">
+            <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-wrap items-center gap-3">
+              <input id="positionSearchInput" oninput="filterPositions()" type="text" placeholder="Tìm vị trí, mã vị trí..." class="text-xs sm:text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl w-48 focus:outline-none">
+              <select id="positionBranchFilter" onchange="filterPositions()" class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">Tất cả chi nhánh</option>
+                <option value="HN">Trụ sở Hà Nội</option>
+                <option value="HCM">Chi nhánh TP. HCM</option>
+                <option value="DN">Chi nhánh Đà Nẵng</option>
+              </select>
+              <select id="positionLevelFilter" onchange="filterPositions()" class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">Tất cả cấp bậc</option>
+                <option value="Giám đốc">Giám đốc</option>
+                <option value="Trưởng phòng">Trưởng phòng</option>
+                <option value="Quản lý">Quản lý</option>
+                <option value="Trưởng nhóm">Trưởng nhóm</option>
+                <option value="Chuyên viên">Chuyên viên</option>
+                <option value="Nhân viên">Nhân viên</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3.5">Vị trí</th>
+                    <th class="p-3.5">Cấp bậc</th>
+                    <th class="p-3.5 text-center">Định biên</th>
+                    <th class="p-3.5 text-center">Thực tế</th>
+                    <th class="p-3.5">Tình trạng</th>
+                    <th class="p-3.5 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="positionsTableBody" class="divide-y divide-slate-100">
+                  <!-- Dynamic positions -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Position Detail Card -->
+          <div id="positionDetailPanel" class="card-soft p-5 space-y-4">
+            <!-- Selected position detail -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. LEAVES VIEW (Nghỉ phép & Quỹ phép năm) -->
+      <section id="view-leaves" class="app-view hidden space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Nghỉ phép</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Đơn nghỉ phép, phê duyệt và quỹ phép năm của nhân viên</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/api/export-excel" download class="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs">
+              <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
+              <span>Xuất Excel</span>
+            </a>
+            <button onclick="openCreateLeaveModal()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>+ Tạo đơn nghỉ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI cards matching screenshot 7 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card-soft p-4 border-amber-200/80 bg-amber-50/20">
+            <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+              <i data-lucide="hourglass" class="w-4 h-4 text-amber-500"></i>
+              Đơn chờ duyệt
+            </span>
+            <div class="my-2">
+              <span id="kpiLeavePending" class="text-2xl sm:text-3xl font-extrabold text-slate-900">2</span>
+              <p class="text-[11px] text-amber-700 font-semibold mt-0.5">Cần xử lý</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="umbrella" class="w-4 h-4 text-purple-500"></i>
+              Đang nghỉ hôm nay
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Không có ai</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i>
+              Ngày nghỉ đã duyệt tháng này
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">0</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">0 đơn</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-500"></i>
+              Tỷ lệ dùng phép năm
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">3.5%</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">30,5 / 871 ngày đã dùng</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leave Sub-tabs -->
+        <div class="flex items-center gap-2 border-b border-slate-200 pb-1 text-xs sm:text-sm font-medium">
+          <button onclick="setLeaveTab('pending')" id="leaveTab-pending" class="leave-tab-btn active px-3.5 py-2 rounded-xl bg-brand-600 text-white font-bold whitespace-nowrap shadow-xs">
+            Chờ duyệt <span id="leaveBadgePending" class="badge-count ml-1">2</span>
+          </button>
+          <button onclick="setLeaveTab('approved')" id="leaveTab-approved" class="leave-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Đã duyệt <span class="badge-count ml-1">41</span>
+          </button>
+          <button onclick="setLeaveTab('rejected')" id="leaveTab-rejected" class="leave-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Từ chối / Huỷ <span class="badge-count ml-1">5</span>
+          </button>
+          <button onclick="setLeaveTab('all')" id="leaveTab-all" class="leave-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Tất cả
+          </button>
+          <button onclick="setLeaveTab('quota')" id="leaveTab-quota" class="leave-tab-btn px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+            Quỹ phép năm
+          </button>
+        </div>
+
+        <!-- Filter bar -->
+        <div id="leaveFilterRow" class="card-soft p-3">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <input id="leaveSearchInput" oninput="loadLeavesList()" type="text" placeholder="Tìm theo tên, mã nhân viên, lý do..." class="text-xs sm:text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+            <select class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+              <option>Tất cả thời gian</option>
+            </select>
+            <select class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+              <option>Tất cả chi nhánh</option>
+            </select>
+            <select class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+              <option>Tất cả loại nghỉ</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Leave Requests Table Container -->
+        <div id="leaveRequestsTableContainer" class="card-soft overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                <tr>
+                  <th class="p-3.5">Nhân viên</th>
+                  <th class="p-3.5">Loại nghỉ</th>
+                  <th class="p-3.5">Thời gian</th>
+                  <th class="p-3.5 text-center">Số ngày</th>
+                  <th class="p-3.5">Lý do</th>
+                  <th class="p-3.5">Trạng thái</th>
+                  <th class="p-3.5">Người duyệt</th>
+                  <th class="p-3.5 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="leavesTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamic leaves -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quota Table Container (Visible when Tab "Quỹ phép năm" is selected) -->
+        <div id="leaveQuotaTableContainer" class="card-soft overflow-hidden hidden">
+          <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm">Bảng theo dõi Quỹ phép năm & Thâm niên</h4>
+              <p class="text-xs text-slate-500">Quy tắc: 12 ngày phép tiêu chuẩn + 1 ngày cho mỗi 5 năm thâm niên</p>
+            </div>
+            <button onclick="recalculateAllLeaveQuotas()" class="px-3 py-1.5 bg-brand-50 text-brand-700 border border-brand-200 rounded-xl text-xs font-semibold hover:bg-brand-100">
+              Cập nhật lại quỹ phép
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                <tr>
+                  <th class="p-3.5">Nhân viên</th>
+                  <th class="p-3.5">Phòng ban</th>
+                  <th class="p-3.5">Ngày vào làm</th>
+                  <th class="p-3.5">Thâm niên</th>
+                  <th class="p-3.5 text-center">Phép chuẩn</th>
+                  <th class="p-3.5 text-center">Thưởng thâm niên</th>
+                  <th class="p-3.5 text-center">Tổng quỹ</th>
+                  <th class="p-3.5 text-center">Đã dùng</th>
+                  <th class="p-3.5 text-center">Còn lại</th>
+                </tr>
+              </thead>
+              <tbody id="leaveQuotaTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamic quota rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. REPORTS VIEW (Báo cáo & Phân tích chuyên sâu) -->
+      <section id="view-reports" class="app-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Báo cáo nhân sự</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Tổng hợp số liệu biến động, tháp tuổi, phân bổ học vấn và quỹ lương</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs">
+              <i data-lucide="printer" class="w-4 h-4 text-slate-500"></i>
+              <span>In báo cáo</span>
+            </button>
+            <a href="/api/export-excel" download class="flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Xuất dữ liệu Excel</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 8 Metric Badges matching screenshot 3 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="trending-down" class="w-4 h-4 text-rose-500"></i>
+              Tỷ lệ nghỉ việc
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">10.8%</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Nghỉ việc / nhân sự bình quân</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="users" class="w-4 h-4 text-purple-500"></i>
+              Tuổi trung bình
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">33</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">24 người dưới 30 tuổi</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="award" class="w-4 h-4 text-blue-500"></i>
+              Thâm niên trung bình
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">3.8</span>
+              <span class="text-sm font-semibold text-slate-500"> năm</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">46 người trên 3 năm</p>
+            </div>
+          </div>
+          <div class="card-soft p-4">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i>
+              Lương cơ bản TB
+            </span>
+            <div class="my-2">
+              <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">21.7</span>
+              <span class="text-sm font-semibold text-slate-500"> tr</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Quỹ lương: 1.74 tỷ / tháng</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Large Charts: Tổng nhân sự theo tháng & Vào làm - Nghỉ việc -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="card-soft p-5">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+              <h4 class="font-bold text-slate-800 text-sm">Tổng nhân sự theo tháng</h4>
+              <span class="text-xs text-slate-400">Số người đang làm việc cuối mỗi tháng</span>
+            </div>
+            <div class="h-64">
+              <canvas id="chartReportEmpTrend"></canvas>
+            </div>
+          </div>
+
+          <div class="card-soft p-5">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+              <h4 class="font-bold text-slate-800 text-sm">Vào làm & nghỉ việc</h4>
+              <span class="text-xs text-slate-400">Theo tháng trong kỳ</span>
+            </div>
+            <div class="h-64">
+              <canvas id="chartReportJoinLeave"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Reports Charts Grid: Tỷ lệ nghỉ việc, Lý do nghỉ việc, Tháp tuổi, Trình độ học vấn -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Tỷ lệ nghỉ việc -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-2">
+              <h4 class="text-xs font-bold text-slate-800">Tỷ lệ nghỉ việc (% theo tháng)</h4>
+            </div>
+            <div class="h-48">
+              <canvas id="chartReportTurnoverRate"></canvas>
+            </div>
+          </div>
+
+          <!-- Lý do nghỉ việc Donut -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-2">
+              <h4 class="text-xs font-bold text-slate-800">Lý do nghỉ việc (Trong kỳ)</h4>
+            </div>
+            <div class="h-48 relative">
+              <canvas id="chartReportResignReasons"></canvas>
+            </div>
+          </div>
+
+          <!-- Tháp tuổi Pyramid -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-2 flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800">Tháp tuổi</h4>
+              <span class="text-[10px] text-slate-400">Nam - Nữ</span>
+            </div>
+            <div class="h-48">
+              <canvas id="chartReportAgePyramid"></canvas>
+            </div>
+          </div>
+
+          <!-- Trình độ học vấn Donut -->
+          <div class="card-soft p-4 flex flex-col justify-between">
+            <div class="border-b border-slate-100 pb-2 mb-2">
+              <h4 class="text-xs font-bold text-slate-800">Trình độ học vấn</h4>
+            </div>
+            <div class="h-48 relative">
+              <canvas id="chartReportEducation"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lower Salary Charts: Quỹ lương phòng ban & Lương TB cấp bậc -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="card-soft p-5">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+              <h4 class="font-bold text-slate-800 text-sm">Quỹ lương theo phòng ban</h4>
+              <span class="text-xs text-slate-400">Lương cơ bản + phụ cấp / tháng</span>
+            </div>
+            <div class="h-64">
+              <canvas id="chartReportSalaryDept"></canvas>
+            </div>
+          </div>
+
+          <div class="card-soft p-5">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+              <h4 class="font-bold text-slate-800 text-sm">Lương trung bình theo cấp bậc</h4>
+              <span class="text-xs text-slate-400">Mức lương thực tế chi trả</span>
+            </div>
+            <div class="h-64">
+              <canvas id="chartReportSalaryLevel"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. USERS VIEW (Người dùng & Phân quyền) -->
+      <section id="view-users" class="app-view hidden space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Người dùng & Phân quyền</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Tài khoản đăng nhập, vai trò, phạm vi dữ liệu theo chi nhánh và ma trận phân quyền chi tiết</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="syncGoogleSheetsNow()" class="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs sm:text-sm font-semibold transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span>Đồng bộ Sheets</span>
+            </button>
+            <button onclick="openAddUserModal()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>+ Thêm người dùng</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card-soft p-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500">Tổng tài khoản</p>
+              <h3 id="kpiTotalUsers" class="text-2xl font-extrabold text-slate-900 mt-1">3</h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">Truy cập hệ thống HRM</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">
+              <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="card-soft p-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500">Quản trị viên (Admin)</p>
+              <h3 id="kpiAdminUsers" class="text-2xl font-extrabold text-purple-700 mt-1">1</h3>
+              <p class="text-[11px] text-purple-500 mt-0.5">Toàn quyền hệ thống</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="card-soft p-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500">Nhân sự & Quản lý</p>
+              <h3 id="kpiHrUsers" class="text-2xl font-extrabold text-blue-700 mt-1">1</h3>
+              <p class="text-[11px] text-blue-500 mt-0.5">HR & Trưởng bộ phận</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <i data-lucide="user-check" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="card-soft p-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500">Đang hoạt động</p>
+              <h3 id="kpiActiveUsers" class="text-2xl font-extrabold text-emerald-700 mt-1">3</h3>
+              <p class="text-[11px] text-emerald-600 mt-0.5">100% tài khoản mở</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Table Card matching concept screenshot -->
+        <div class="card-soft overflow-hidden">
+          <!-- Filters & Search Bar -->
+          <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white">
+            <div class="flex flex-wrap items-center gap-3 flex-1">
+              <div class="relative w-full md:w-72">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                <input type="text" id="userSearchInput" oninput="filterUsersList()" placeholder="Tìm người dùng, email, SĐT, @username..." class="w-full text-xs sm:text-sm pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+              </div>
+
+              <select id="userRoleFilter" onchange="filterUsersList()" class="text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">Tất cả vai trò</option>
+                <option value="admin">Quản trị viên (Admin)</option>
+                <option value="hr">Nhân sự (HR)</option>
+                <option value="manager">Trưởng phòng (Manager)</option>
+                <option value="viewer">Chỉ xem</option>
+                <option value="custom">Tùy chỉnh</option>
+              </select>
+
+              <select id="userScopeFilter" onchange="filterUsersList()" class="text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">Tất cả phạm vi</option>
+                <option value="all_branches">Tất cả chi nhánh</option>
+                <option value="branch_HN">Trụ sở chính Hà Nội</option>
+                <option value="branch_HCM">Chi nhánh TP. HCM</option>
+                <option value="branch_DN">Chi nhánh Đà Nẵng</option>
+                <option value="dept">Phòng ban trực thuộc</option>
+              </select>
+
+              <select id="userStatusFilter" onchange="filterUsersList()" class="text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="locked">Đã khóa</option>
+              </select>
+            </div>
+
+            <div class="text-xs text-slate-500 font-medium whitespace-nowrap">
+              Hiển thị <span id="usersCountBadge" class="font-bold text-slate-800">3 / 3</span> tài khoản
+            </div>
+          </div>
+
+          <!-- Table Content -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] tracking-wider">
+                <tr>
+                  <th class="p-3.5">Người dùng</th>
+                  <th class="p-3.5">Liên hệ</th>
+                  <th class="p-3.5">Vai trò</th>
+                  <th class="p-3.5">Phạm vi dữ liệu</th>
+                  <th class="p-3.5">Quyền hạn chi tiết</th>
+                  <th class="p-3.5">Hồ sơ liên kết</th>
+                  <th class="p-3.5">Trạng thái</th>
+                  <th class="p-3.5 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamically populated via loadUsersView() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. SETTINGS VIEW (Cài đặt hệ thống & Google Sheets Sync) -->
+      <section id="view-settings" class="app-view hidden space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Cài đặt</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Danh mục dùng chung và thông số hệ thống</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Left Settings Menu (matching screenshot 1) -->
+          <div class="card-soft p-3 space-y-1">
+            <button onclick="setSettingsTab('general')" id="settingTab-general" class="setting-tab-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-brand-50 text-brand-600">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Cài đặt chung</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Công ty, mã NV, phép năm</p>
+                </div>
+              </div>
+            </button>
+
+            <button onclick="setSettingsTab('googlesheets')" id="settingTab-googlesheets" class="setting-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Dữ liệu & Drive</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Thư mục lưu tệp, Google Sheets</p>
+                </div>
+              </div>
+              <span class="text-emerald-500 text-xs font-bold">✓</span>
+            </button>
+
+            <button onclick="setSettingsTab('contractTypes')" id="settingTab-contractTypes" class="setting-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Loại hợp đồng</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Thời hạn để tự tính ngày</p>
+                </div>
+              </div>
+              <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">5</span>
+            </button>
+
+            <button onclick="setSettingsTab('leaveTypes')" id="settingTab-leaveTypes" class="setting-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Loại nghỉ phép</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Trừ phép năm / có lương...</p>
+                </div>
+              </div>
+              <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">5</span>
+            </button>
+
+            <button onclick="setSettingsTab('resignationReasons')" id="settingTab-resignationReasons" class="setting-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="user-x" class="w-4 h-4"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Lý do nghỉ việc</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Phân tích nguyên nhân...</p>
+                </div>
+              </div>
+              <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">7</span>
+            </button>
+
+            <button onclick="setSettingsTab('documentTypes')" id="settingTab-documentTypes" class="setting-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="folder" class="w-4 h-4"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Loại tài liệu</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Hồ sơ bắt buộc / không...</p>
+                </div>
+              </div>
+              <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">7</span>
+            </button>
+
+            <button onclick="setSettingsTab('educationLevels')" id="settingTab-educationLevels" class="setting-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                <div class="text-left">
+                  <p class="leading-tight">Trình độ học vấn</p>
+                  <p class="text-[10px] text-slate-400 font-normal">Dùng cho báo cáo trình độ</p>
+                </div>
+              </div>
+              <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">5</span>
+            </button>
+          </div>
+
+          <!-- Right Content Panel -->
+          <div class="lg:col-span-3 card-soft p-6">
+            <!-- Sub-view 1: Cài đặt chung -->
+            <div id="subview-setting-general" class="setting-subview space-y-5">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <i data-lucide="settings" class="w-5 h-5 text-brand-600"></i>
+                <h3 class="font-bold text-slate-800 text-base">Cài đặt chung</h3>
+              </div>
+              <p class="text-xs text-slate-500">Thông số dùng chung cho toàn hệ thống.</p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Tên công ty</label>
+                  <input id="settingCompanyName" type="text" value="ASIN GROUP" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Tiền tố mã nhân viên</label>
+                  <input id="settingCodePrefix" type="text" value="NV" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                  <p class="text-[11px] text-slate-400 mt-1">VD: NV → NV0001</p>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Số ngày phép năm tiêu chuẩn</label>
+                  <input id="settingAnnualLeaveStandard" type="number" value="12" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                  <p class="text-[11px] text-slate-500 mt-1">Cộng thêm 1 ngày mỗi 5 năm thâm niên</p>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Cảnh báo hết hạn hợp đồng trước (ngày)</label>
+                  <input id="settingContractWarningDays" type="number" value="30" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                </div>
+              </div>
+
+              <div class="pt-3">
+                <button onclick="saveGeneralSettings()" class="flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-sm">
+                  <i data-lucide="save" class="w-4 h-4"></i>
+                  <span>Lưu cài đặt</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sub-view 2: Dữ liệu & Google Sheets -->
+            <div id="subview-setting-googlesheets" class="setting-subview hidden space-y-5">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-600"></i>
+                <h3 class="font-bold text-slate-800 text-base">Đồng bộ Dữ liệu & Google Sheets</h3>
+              </div>
+              <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+                    GS
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-emerald-950 text-sm">Trạng thái kết nối Google Sheets: ĐÃ KẾT NỐI</h4>
+                    <p class="text-xs text-emerald-700 mt-0.5">Lần đồng bộ gần nhất: <span id="gsLastSyncText" class="font-semibold">18/11/2026 10:00:15</span></p>
+                  </div>
+                </div>
+                <button onclick="syncGoogleSheetsNow()" id="syncBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-2">
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                  <span>Đồng bộ ngay</span>
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="block text-xs font-bold text-slate-700">Google Sheets URL (Bảng tính tự động báo cáo)</label>
+                    <a href="https://docs.google.com/spreadsheets/d/12DE0YcDFU-4gw7z2K-d4SXxVRRXwvtGYtZrySLEEt0E/edit?usp=drivesdk" target="_blank" class="text-xs text-brand-600 font-semibold hover:underline flex items-center gap-1">
+                      <span>Mở bảng tính</span>
+                      <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    </a>
+                  </div>
+                  <input id="settingSheetUrl" type="text" value="https://docs.google.com/spreadsheets/d/12DE0YcDFU-4gw7z2K-d4SXxVRRXwvtGYtZrySLEEt0E/edit?usp=drivesdk" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono text-slate-700 font-semibold bg-slate-50">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Danh mục Sheet đồng bộ tự động theo sidebar trái:</label>
+                  <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-[11px] font-semibold">
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Tổng quan & Báo cáo</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Nhân viên (85)</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Phòng ban (12)</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Chi nhánh (3)</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Vị trí - Chức danh</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Nghỉ phép</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Quỹ phép năm</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Khen thưởng - KL</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Lịch sử công tác</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg flex items-center gap-1">✓ Người dùng & PQ</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Google Apps Script Webhook URL</label>
+                  <input id="settingWebhookUrl" type="text" value="https://script.google.com/macros/s/AKfycbx_ASIN_HRM_SYNC/exec" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono text-slate-600">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Thư mục Google Drive lưu tài liệu / ảnh đại diện</label>
+                  <input id="settingDriveFolderUrl" type="text" value="https://drive.google.com/drive/folders/1ASIN_HRM_DOCUMENTS" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono text-slate-600">
+                </div>
+              </div>
+
+              <!-- Google Apps Script Source Code Box -->
+              <div class="pt-2">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-slate-700">Mã nguồn Google Apps Script mẫu để nhúng vào Google Sheets:</span>
+                  <button onclick="copyAppsScriptCode()" class="text-xs text-brand-600 hover:underline font-semibold flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span>Sao chép mã</span>
+                  </button>
+                </div>
+                <pre class="bg-slate-900 text-slate-100 p-3 rounded-xl text-[11px] overflow-x-auto max-h-44 font-mono">
+function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("NhanSu") || ss.insertSheet("NhanSu");
+  // Cập nhật tự động 76 nhân sự lên Google Sheets
+  return ContentService.createTextOutput(JSON.stringify({ status: "success", count: data.length }));
+}</pre>
+              </div>
+            </div>
+
+            <!-- Sub-view 3: Loại hợp đồng -->
+            <div id="subview-setting-contractTypes" class="setting-subview hidden space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 text-base">Cấu hình loại hợp đồng</h3>
+              </div>
+              <p class="text-xs text-slate-500">Quy tắc tự tính ngày hết hạn hợp đồng khi thêm mới hoặc gia hạn.</p>
+              <div class="space-y-2">
+                <div class="p-3 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p class="font-bold text-slate-800 text-sm">Hợp đồng thử việc 2 tháng</p>
+                    <p class="text-xs text-slate-500">Tự động tính: Ngày bắt đầu + 2 tháng (trừ 1 ngày)</p>
+                  </div>
+                  <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-semibold">Tự tính 2 tháng</span>
+                </div>
+                <div class="p-3 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p class="font-bold text-slate-800 text-sm">HĐ xác định thời hạn 12 tháng</p>
+                    <p class="text-xs text-slate-500">Tự động tính: Ngày bắt đầu + 12 tháng (trừ 1 ngày)</p>
+                  </div>
+                  <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-semibold">Tự tính 12 tháng</span>
+                </div>
+                <div class="p-3 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p class="font-bold text-slate-800 text-sm">HĐ xác định thời hạn 36 tháng</p>
+                    <p class="text-xs text-slate-500">Tự động tính: Ngày bắt đầu + 36 tháng (trừ 1 ngày)</p>
+                  </div>
+                  <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-semibold">Tự tính 36 tháng</span>
+                </div>
+                <div class="p-3 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p class="font-bold text-slate-800 text-sm">HĐ không xác định thời hạn</p>
+                    <p class="text-xs text-slate-500">Không có ngày hết hạn (Vô thời hạn)</p>
+                  </div>
+                  <span class="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg text-xs font-semibold">Vô thời hạn</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Other Sub-views placeholders -->
+            <div id="subview-setting-leaveTypes" class="setting-subview hidden space-y-4">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-2">Danh mục loại nghỉ phép</h3>
+              <ul class="text-xs space-y-2 text-slate-600">
+                <li class="p-2.5 bg-slate-50 rounded-lg flex justify-between"><span>Nghỉ phép năm</span><span class="font-semibold text-brand-600">Trừ quỹ phép năm • Có lương</span></li>
+                <li class="p-2.5 bg-slate-50 rounded-lg flex justify-between"><span>Nghỉ ốm đau</span><span class="font-semibold text-purple-600">Hưởng chế độ BHXH</span></li>
+                <li class="p-2.5 bg-slate-50 rounded-lg flex justify-between"><span>Nghỉ việc riêng có lương</span><span class="font-semibold text-emerald-600">Không trừ phép • Có lương</span></li>
+                <li class="p-2.5 bg-slate-50 rounded-lg flex justify-between"><span>Nghỉ không lương</span><span class="font-semibold text-slate-500">Không trừ phép • Không lương</span></li>
+                <li class="p-2.5 bg-slate-50 rounded-lg flex justify-between"><span>Nghỉ thai sản</span><span class="font-semibold text-pink-600">6 tháng BHXH</span></li>
+              </ul>
+            </div>
+
+            <div id="subview-setting-resignationReasons" class="setting-subview hidden space-y-4">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-2">Lý do nghỉ việc chuẩn</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 border rounded-lg">1. Thu nhập chưa phù hợp</div>
+                <div class="p-2.5 border rounded-lg">2. Chuyển sang công việc mới</div>
+                <div class="p-2.5 border rounded-lg">3. Lý do gia đình / cá nhân</div>
+                <div class="p-2.5 border rounded-lg">4. Môi trường, quản lý chưa phù hợp</div>
+                <div class="p-2.5 border rounded-lg">5. Hết hạn hợp đồng</div>
+                <div class="p-2.5 border rounded-lg">6. Định hướng sự nghiệp thay đổi</div>
+              </div>
+            </div>
+
+            <div id="subview-setting-documentTypes" class="setting-subview hidden space-y-4">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-2">Loại tài liệu nhân sự</h3>
+              <p class="text-xs text-slate-500">Hợp đồng lao động, CCCD gắn chip, Bằng tốt nghiệp, Sơ yếu lý lịch, Giấy khám sức khỏe, Quyết định bổ nhiệm/điều chuyển.</p>
+            </div>
+
+            <div id="subview-setting-educationLevels" class="setting-subview hidden space-y-4">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-2">Trình độ học vấn</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-semibold">Trung cấp</span>
+                <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-semibold">Cao đẳng</span>
+                <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-semibold">Đại học</span>
+                <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-semibold">Thạc sĩ</span>
+                <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-semibold">Tiến sĩ</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. USER GUIDE VIEW (Hướng dẫn sử dụng) -->
+      <section id="view-guide" class="app-view hidden space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Hướng dẫn sử dụng</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Các thao tác chính của phần mềm quản lý hồ sơ nhân sự ASIN GROUP</p>
+        </div>
+
+        <!-- 4 Step Quick Start Cards matching screenshot 2 -->
+        <div class="card-soft p-6">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 mb-4">
+            <i data-lucide="zap" class="w-4 h-4 text-brand-600"></i>
+            Bắt đầu nhanh
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+              <span class="w-6 h-6 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2">1</span>
+              <h4 class="font-bold text-slate-900 text-sm mb-1">Khai báo tổ chức</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Tạo chi nhánh, phòng ban, vị trí - chức danh; Quản trị viên nhập thư mục Drive lưu tệp ở Cài đặt.</p>
+            </div>
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+              <span class="w-6 h-6 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2">2</span>
+              <h4 class="font-bold text-slate-900 text-sm mb-1">Thêm nhân viên</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Nhập từng người hoặc nhập hàng loạt bằng file Excel mẫu. Hệ thống cảnh báo nếu trùng SĐT, email, CCCD.</p>
+            </div>
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+              <span class="w-6 h-6 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2">3</span>
+              <h4 class="font-bold text-slate-900 text-sm mb-1">Cập nhật hồ sơ</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Hợp đồng, lương, tài liệu, khen thưởng – mọi thay đổi tự động ghi lại lịch sử công tác chi tiết.</p>
+            </div>
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+              <span class="w-6 h-6 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2">4</span>
+              <h4 class="font-bold text-slate-900 text-sm mb-1">Theo dõi</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Xem Tổng quan, chuông thông báo và Báo cáo để nắm tình hình hợp đồng hết hạn, thử việc, đơn nghỉ.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Feature Instructions matching screenshot 2 -->
+        <div class="space-y-4">
+          <div class="card-soft p-5">
+            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 mb-2 text-brand-700">
+              <i data-lucide="users" class="w-4 h-4"></i>
+              Nhân viên & Kiểm tra trùng lặp
+            </h4>
+            <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-5">
+              <li>Bấm <b>Thêm nhân viên</b>: chọn chi nhánh → phòng ban → vị trí. Mã NV để trống sẽ tự tạo tăng dần (NV00xx).</li>
+              <li>Chọn loại hợp đồng và ngày bắt đầu, <b>ngày hết hạn tự tính</b> tự động theo loại HĐ.</li>
+              <li>Hệ thống cảnh báo realtime nếu trùng số điện thoại, email hoặc CCCD ngay khi nhập.</li>
+              <li><b>Nhập Excel</b>: tải file mẫu, kéo thả tải lên – hệ thống kiểm tra từng dòng, báo lỗi chi tiết nếu có dòng không hợp lệ.</li>
+            </ul>
+          </div>
+
+          <div class="card-soft p-5">
+            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 mb-2 text-brand-700">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              Hồ sơ & Hợp đồng & Lịch sử
+            </h4>
+            <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-5">
+              <li>Bấm vào một nhân viên để mở hồ sơ gồm các tab: Thông tin, Công việc & Hợp đồng, Tài liệu, Nghỉ phép, Khen thưởng – Kỷ luật, Lịch sử.</li>
+              <li><b>Điều chuyển / lương</b>: đổi chi nhánh, phòng ban, vị trí, quản lý, lương kèm ngày hiệu lực và số quyết định. Tự động lưu vào lịch sử công tác.</li>
+              <li><b>Ký HĐ chính thức / Gia hạn hợp đồng</b>: hết thử việc thì chuyển sang chính thức chỉ với 1 bước.</li>
+              <li><b>Nghỉ việc</b>: ghi ngày và lý do nghỉ (dùng cho báo cáo tỷ lệ nghỉ việc). Có thể <b>Nhận lại làm việc</b> khi cần.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar (Matching iPhone Mockup Screenshot 9) -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 mobile-nav-bar flex items-center justify-around px-2 py-1.5 text-[10px] font-medium text-slate-500">
+    <button onclick="navigate('dashboard')" id="mobileNav-dashboard" class="flex flex-col items-center gap-0.5 p-1 text-brand-600 font-bold">
+      <i data-lucide="layout-grid" class="w-5 h-5"></i>
+      <span>Tổng quan</span>
+    </button>
+    <button onclick="navigate('employees')" id="mobileNav-employees" class="flex flex-col items-center gap-0.5 p-1">
+      <i data-lucide="users" class="w-5 h-5"></i>
+      <span>Nhân viên</span>
+    </button>
+    <button onclick="navigate('departments')" id="mobileNav-departments" class="flex flex-col items-center gap-0.5 p-1">
+      <i data-lucide="network" class="w-5 h-5"></i>
+      <span>Phòng ban</span>
+    </button>
+    <button onclick="navigate('leaves')" id="mobileNav-leaves" class="flex flex-col items-center gap-0.5 p-1 relative">
+      <i data-lucide="calendar-check" class="w-5 h-5"></i>
+      <span>Nghỉ phép</span>
+      <span class="absolute top-0 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
+    </button>
+    <button onclick="navigate('reports')" id="mobileNav-reports" class="flex flex-col items-center gap-0.5 p-1">
+      <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+      <span>Báo cáo</span>
+    </button>
+  </nav>
+
+  <!-- Mobile Floating Action Button (+) -->
+  <div class="md:hidden fixed bottom-16 right-4 z-30">
+    <button onclick="openAddEmployeeModal()" class="w-12 h-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg flex items-center justify-center font-bold text-xl">
+      <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODALS CONTAINER                                         -->
+  <!-- ======================================================== -->
+
+  <!-- 1. FULL EMPLOYEE DETAIL MODAL (Matching Screenshot 10) -->
+  <div id="modalEmployeeDetail" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalEmployeeDetail')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col z-10 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div class="flex items-center gap-4">
+          <img id="detailEmpAvatar" src="" alt="Avatar" class="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 id="detailEmpFullName" class="text-lg sm:text-xl font-extrabold text-slate-900">Lê Diệu Nhung</h3>
+              <span id="detailEmpCode" class="text-xs font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-md">NV0001</span>
+              <span id="detailEmpStatusBadge" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                <span>Đang làm việc</span>
+              </span>
+            </div>
+            <p id="detailEmpHeadline" class="text-xs text-slate-500 mt-1">Trưởng phòng Nhân sự • Nhân sự • Trụ sở chính Hà Nội • 7 năm 8 tháng</p>
+            <p id="detailEmpContact" class="text-xs text-slate-400 mt-0.5">0912345001 • nhung.ld49@danzia.vn • Quản lý: Ngô Mai Trang</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openEditCurrentEmployee()" class="px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100">
+            Sửa hồ sơ
+          </button>
+          <button onclick="openTransferModal(currentDetailEmpId)" class="px-3 py-1.5 border border-brand-200 bg-brand-50 text-brand-700 rounded-xl text-xs font-semibold hover:bg-brand-100">
+            Điều chuyển / lương
+          </button>
+          <button onclick="openContractRenewalModal(currentDetailEmpId)" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-semibold hover:bg-brand-700">
+            Gia hạn HĐ
+          </button>
+          <button onclick="closeModal('modalEmployeeDetail')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Sub-bar: Ghi nhận nghỉ việc / Tạo đơn nghỉ -->
+      <div class="px-6 py-2 bg-slate-100/60 border-b border-slate-100 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <button onclick="openCreateLeaveForEmp(currentDetailEmpId)" class="font-semibold text-brand-600 hover:underline flex items-center gap-1">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tạo đơn nghỉ phép
+          </button>
+          <span class="text-slate-300">•</span>
+          <button onclick="openAddRewardModal(currentDetailEmpId)" class="font-semibold text-purple-600 hover:underline flex items-center gap-1">
+            <i data-lucide="award" class="w-3.5 h-3.5"></i> Ghi nhận khen thưởng / kỷ luật
+          </button>
+        </div>
+        <div id="detailEmpResignActionContainer">
+          <!-- Resign or Rehire button -->
+        </div>
+      </div>
+
+      <!-- 6 Tabs Navigation matching screenshot 10 -->
+      <div class="px-6 border-b border-slate-200 flex items-center gap-4 text-xs font-semibold overflow-x-auto">
+        <button onclick="setDetailTab('info')" id="empDetailTab-info" class="emp-detail-tab-btn active py-3 border-b-2 border-brand-600 text-brand-600">
+          Thông tin
+        </button>
+        <button onclick="setDetailTab('job')" id="empDetailTab-job" class="emp-detail-tab-btn py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+          Công việc & Hợp đồng
+        </button>
+        <button onclick="setDetailTab('docs')" id="empDetailTab-docs" class="emp-detail-tab-btn py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1">
+          <span>Tài liệu</span>
+          <span id="detailBadgeDocs" class="bg-slate-100 text-slate-600 text-[10px] px-1.5 rounded-full">3</span>
+        </button>
+        <button onclick="setDetailTab('leaves')" id="empDetailTab-leaves" class="emp-detail-tab-btn py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1">
+          <span>Nghỉ phép</span>
+          <span id="detailBadgeLeaves" class="bg-slate-100 text-slate-600 text-[10px] px-1.5 rounded-full">1</span>
+        </button>
+        <button onclick="setDetailTab('rewards')" id="empDetailTab-rewards" class="emp-detail-tab-btn py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1">
+          <span>Khen thưởng – Kỷ luật</span>
+          <span id="detailBadgeRewards" class="bg-slate-100 text-slate-600 text-[10px] px-1.5 rounded-full">1</span>
+        </button>
+        <button onclick="setDetailTab('history')" id="empDetailTab-history" class="emp-detail-tab-btn py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1">
+          <span>Lịch sử</span>
+          <span id="detailBadgeHistory" class="bg-slate-100 text-slate-600 text-[10px] px-1.5 rounded-full">3</span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div id="detailTabContent" class="p-6 overflow-y-auto max-h-[60vh]">
+        <!-- Dynamic detail tab content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ADD / EDIT EMPLOYEE MODAL (With real-time duplicate validation) -->
+  <div id="modalAddEmployee" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalAddEmployee')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="addEmpModalTitle" class="font-bold text-slate-900 text-lg">Thêm nhân viên mới</h3>
+          <p class="text-xs text-slate-500">Mã NV tự sinh nếu để trống. Tự động kiểm tra trùng số điện thoại, email, CCCD.</p>
+        </div>
+        <button onclick="closeModal('modalAddEmployee')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addEmployeeForm" onsubmit="handleEmployeeFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 max-h-[75vh]">
+        <input type="hidden" id="formEmpId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên <span class="text-rose-500">*</span></label>
+            <input id="formFullName" type="text" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Mã nhân viên (để trống tự tạo: NV00xx)</label>
+            <input id="formCode" type="text" placeholder="Tự sinh nếu trống" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Giới tính</label>
+            <select id="formGender" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày sinh (DD/MM/YYYY)</label>
+            <input id="formBirthDate" type="text" placeholder="15/06/1995" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số CCCD / CMND <span class="text-rose-500">*</span></label>
+            <input id="formIdCard" oninput="checkDuplicateField('idCard')" type="text" required placeholder="001095001234" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+            <p id="dupError-idCard" class="text-[11px] text-rose-600 font-medium mt-1 hidden"></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại <span class="text-rose-500">*</span></label>
+            <input id="formPhone" oninput="checkDuplicateField('phone')" type="tel" required placeholder="0912345678" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+            <p id="dupError-phone" class="text-[11px] text-rose-600 font-medium mt-1 hidden"></p>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Email công việc <span class="text-rose-500">*</span></label>
+            <input id="formEmail" oninput="checkDuplicateField('email')" type="email" required placeholder="ten.nv@danzia.vn" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none">
+            <p id="dupError-email" class="text-[11px] text-rose-600 font-medium mt-1 hidden"></p>
+          </div>
+        </div>
+
+        <!-- Organization Assignment -->
+        <div class="p-4 bg-slate-50 rounded-2xl space-y-3">
+          <p class="text-xs font-bold text-slate-800 uppercase tracking-wider">Thông tin Tổ chức & Vị trí</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Chi nhánh</label>
+              <select id="formBranch" onchange="onFormBranchChange()" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+                <option value="HN">Trụ sở chính Hà Nội</option>
+                <option value="HCM">Chi nhánh TP. Hồ Chí Minh</option>
+                <option value="DN">Chi nhánh Đà Nẵng</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Phòng ban</label>
+              <select id="formDepartment" onchange="onFormDeptChange()" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Vị trí chức danh</label>
+              <select id="formPosition" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Quản lý trực tiếp</label>
+              <select id="formManager" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Ngày vào làm</label>
+              <input id="formJoinDate" onchange="onFormJoinDateChange()" type="text" value="18/11/2026" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Contract & Salary -->
+        <div class="p-4 bg-slate-50 rounded-2xl space-y-3">
+          <p class="text-xs font-bold text-slate-800 uppercase tracking-wider">Hợp đồng & Lương</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Loại hợp đồng</label>
+              <select id="formContractType" onchange="onFormContractTypeChange()" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+                <option value="Hợp đồng thử việc 2 tháng">Hợp đồng thử việc 2 tháng</option>
+                <option value="HĐ xác định thời hạn 12 tháng">HĐ xác định thời hạn 12 tháng</option>
+                <option value="HĐ xác định thời hạn 36 tháng">HĐ xác định thời hạn 36 tháng</option>
+                <option value="HĐ không xác định thời hạn">HĐ không xác định thời hạn</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Hạn hợp đồng (Tự tính)</label>
+              <input id="formContractEndDate" type="text" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm focus:outline-none">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Lương cơ bản (đ)</label>
+              <input id="formBaseSalary" type="number" value="15000000" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Phụ cấp (đ)</label>
+              <input id="formAllowance" type="number" value="1500000" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Avatar upload or link -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Ảnh đại diện (Link ảnh hoặc tải lên Drive)</label>
+          <input id="formAvatar" type="text" placeholder="https://... hoặc dán link Google Drive chia sẻ công khai" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none">
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modalAddEmployee')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            Hủy
+          </button>
+          <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-sm">
+            Lưu hồ sơ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. TRANSFER / ADJUST SALARY MODAL -->
+  <div id="modalTransfer" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalTransfer')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-xl flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Điều chuyển / Điều chỉnh lương</h3>
+          <p class="text-xs text-slate-500">Mọi thay đổi sẽ tự động ghi vào lịch sử công tác</p>
+        </div>
+        <button onclick="closeModal('modalTransfer')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="transferForm" onsubmit="handleTransferSubmit(event)" class="p-6 space-y-4">
+        <input type="hidden" id="transferEmpId">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày hiệu lực</label>
+            <input id="transferDate" type="text" value="18/11/2026" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số quyết định</label>
+            <input id="transferDecision" type="text" placeholder="QĐ-ĐC/2026/01" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Chi nhánh mới</label>
+          <select id="transferBranch" onchange="onTransferBranchChange()" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+            <option value="HN">Trụ sở chính Hà Nội</option>
+            <option value="HCM">Chi nhánh TP. Hồ Chí Minh</option>
+            <option value="DN">Chi nhánh Đà Nẵng</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Phòng ban mới</label>
+            <select id="transferDept" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Vị trí chức danh mới</label>
+            <select id="transferPosition" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Lương cơ bản mới (đ)</label>
+            <input id="transferSalary" type="number" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Phụ cấp mới (đ)</label>
+            <input id="transferAllowance" type="number" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Lý do điều chuyển / điều chỉnh</label>
+          <input id="transferReason" type="text" placeholder="Bổ nhiệm, tăng lương định kỳ hoặc luân chuyển chi nhánh" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modalTransfer')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">Hủy</button>
+          <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-sm">Xác nhận điều chuyển</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. SIGN OFFICIAL / RENEW CONTRACT (1 Bước) -->
+  <div id="modalRenewContract" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalRenewContract')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Ký HĐ chính thức / Gia hạn hợp đồng (1 bước)</h3>
+          <p class="text-xs text-slate-500">Tự tính ngày kết thúc và cập nhật trạng thái nhân viên</p>
+        </div>
+        <button onclick="closeModal('modalRenewContract')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="renewContractForm" onsubmit="handleRenewContractSubmit(event)" class="p-6 space-y-4">
+        <input type="hidden" id="renewEmpId">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Loại hợp đồng mới</label>
+          <select id="renewContractType" onchange="onRenewContractTypeChange()" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+            <option value="HĐ không xác định thời hạn">HĐ không xác định thời hạn (Vô thời hạn)</option>
+            <option value="HĐ xác định thời hạn 36 tháng">HĐ xác định thời hạn 36 tháng</option>
+            <option value="HĐ xác định thời hạn 12 tháng">HĐ xác định thời hạn 12 tháng</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày bắt đầu</label>
+            <input id="renewStartDate" onchange="onRenewContractTypeChange()" type="text" value="18/11/2026" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày kết thúc (Tự tính)</label>
+            <input id="renewEndDate" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số hợp đồng</label>
+            <input id="renewContractNumber" type="text" placeholder="2026/HĐLĐ-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Lương chính thức (đ)</label>
+            <input id="renewSalary" type="number" placeholder="Giữ nguyên hoặc nhập mới" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modalRenewContract')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">Hủy</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm">Xác nhận ký hợp đồng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. CREATE LEAVE REQUEST MODAL -->
+  <div id="modalCreateLeave" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalCreateLeave')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Tạo đơn nghỉ phép</h3>
+          <p class="text-xs text-slate-500">HR duyệt trực tuyến và tự động trừ số dư phép năm</p>
+        </div>
+        <button onclick="closeModal('modalCreateLeave')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="createLeaveForm" onsubmit="handleCreateLeaveSubmit(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nhân viên nghỉ phép <span class="text-rose-500">*</span></label>
+          <select id="leaveEmpSelect" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Loại nghỉ phép</label>
+            <select id="leaveTypeSelect" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+              <option value="Nghỉ phép năm">Nghỉ phép năm (Trừ phép)</option>
+              <option value="Nghỉ ốm">Nghỉ ốm (Có lương / BHXH)</option>
+              <option value="Nghỉ việc riêng có lương">Nghỉ việc riêng có lương</option>
+              <option value="Nghỉ không lương">Nghỉ không lương</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số ngày nghỉ (vd: 1, 0.5, 3)</label>
+            <input id="leaveDaysCount" type="number" step="0.5" value="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Từ ngày</label>
+            <input id="leaveStartDate" type="text" value="19/11/2026" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Đến ngày</label>
+            <input id="leaveEndDate" type="text" value="19/11/2026" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Lý do nghỉ <span class="text-rose-500">*</span></label>
+          <textarea id="leaveReason" rows="2" required placeholder="Lý do nghỉ phép, việc cá nhân hoặc khám sức khỏe..." class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modalCreateLeave')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">Hủy</button>
+          <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-sm">Gửi đơn nghỉ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. RESIGNATION / REHIRE MODAL -->
+  <div id="modalResign" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalResign')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Ghi nhận nghỉ việc</h3>
+          <p class="text-xs text-slate-500">Chuyển trạng thái sang đã nghỉ việc và ghi nhận lý do</p>
+        </div>
+        <button onclick="closeModal('modalResign')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="resignForm" onsubmit="handleResignSubmit(event)" class="p-6 space-y-4">
+        <input type="hidden" id="resignEmpId">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày nghỉ việc chính thức</label>
+            <input id="resignDate" type="text" value="18/11/2026" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số quyết định</label>
+            <input id="resignDecision" type="text" placeholder="QĐ-NV/2026/..." class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Lý do nghỉ việc</label>
+          <select id="resignReason" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+            <option value="Thu nhập chưa phù hợp">Thu nhập chưa phù hợp</option>
+            <option value="Chuyển sang công việc mới">Chuyển sang công việc mới</option>
+            <option value="Lý do gia đình / cá nhân">Lý do gia đình / cá nhân</option>
+            <option value="Môi trường, quản lý chưa phù hợp">Môi trường, quản lý chưa phù hợp</option>
+            <option value="Hết hạn hợp đồng">Hết hạn hợp đồng</option>
+            <option value="Định hướng sự nghiệp thay đổi">Định hướng sự nghiệp thay đổi</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú bàn giao & nguyện vọng</label>
+          <textarea id="resignNote" rows="2" placeholder="Đã hoàn thành bàn giao công việc và trang thiết bị..." class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('modalResign')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">Hủy</button>
+          <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold shadow-sm">Xác nhận nghỉ việc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 7. ORG CHART INTERACTIVE FULL MODAL -->
+  <div id="modalOrgChart" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 hidden">
+    <div onclick="closeModal('modalOrgChart')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full h-[95vh] flex flex-col z-10 overflow-hidden">
+      <!-- Toolbar -->
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center">
+            <i data-lucide="sitemap" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Sơ đồ tổ chức tự vẽ (Cấp trên - Cấp dưới)</h3>
+            <p class="text-xs text-slate-500">Tự động kết nối quan hệ cấp bậc từ Tổng Giám đốc đến từng chuyên viên</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Zoom controls -->
+          <div class="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 shadow-xs">
+            <button onclick="zoomOrgChart(0.1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600" title="Phóng to">
+              <i data-lucide="zoom-in" class="w-4 h-4"></i>
+            </button>
+            <button onclick="resetOrgChartZoom()" class="px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg" title="Đặt lại">
+              <span id="orgChartZoomVal">100%</span>
+            </button>
+            <button onclick="zoomOrgChart(-0.1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600" title="Thu nhỏ">
+              <i data-lucide="zoom-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <button onclick="closeModal('modalOrgChart')" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Canvas -->
+      <div id="orgChartContainer" class="org-chart-wrapper flex-1 p-8 overflow-auto">
+        <div id="orgChartInner" class="transform origin-top transition-transform duration-150 inline-block min-w-full">
+          <!-- Dynamically built Org Tree -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. EXCEL IMPORT MODAL (Kéo thả, validation kiểm tra dòng lỗi) -->
+  <div id="modalImportExcel" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalImportExcel')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Nhập nhân viên hàng loạt từ Excel</h3>
+          <p class="text-xs text-slate-500">Tự động kiểm tra lỗi từng dòng, kiểm tra trùng SĐT, email, CCCD</p>
+        </div>
+        <button onclick="closeModal('modalImportExcel')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- Template Download Alert -->
+        <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-brand-600"></i>
+            <div>
+              <p class="text-xs font-bold text-blue-950">Chưa có file mẫu chuẩn?</p>
+              <p class="text-[11px] text-blue-700">Tải file mẫu Excel có sẵn các cột bắt buộc</p>
+            </div>
+          </div>
+          <a href="/api/sample-excel" download class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs">
+            Tải file mẫu
+          </a>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="dropZone" onclick="document.getElementById('excelFileInput').click()" class="border-2 border-dashed border-slate-300 hover:border-brand-500 bg-slate-50/50 hover:bg-brand-50/30 rounded-2xl p-8 text-center cursor-pointer transition">
+          <input type="file" id="excelFileInput" onchange="handleExcelFileSelect(this)" accept=".xlsx, .xls, .csv" class="hidden">
+          <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-bold text-slate-800">Nhấp để chọn file hoặc kéo thả file Excel vào đây</p>
+          <p class="text-xs text-slate-400 mt-1">Hỗ trợ định dạng .xlsx, .xls, .csv</p>
+        </div>
+
+        <!-- Validation Results Container -->
+        <div id="importValidationResults" class="hidden space-y-3">
+          <div class="p-3 rounded-xl flex items-center justify-between text-xs font-bold border" id="importSummaryCard">
+            <!-- Summary stats -->
+          </div>
+          <div id="importErrorsList" class="max-h-40 overflow-y-auto space-y-1.5 text-xs text-rose-700">
+            <!-- Errors list -->
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button onclick="closeModal('modalImportExcel')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">Đóng</button>
+          <button id="btnCommitImport" onclick="commitExcelImport()" disabled class="px-5 py-2 bg-brand-600 disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow-sm">
+            Nhập vào hệ thống
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. GOOGLE SHEETS SYNC MODAL -->
+  <div id="modalGoogleSheetsSync" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div onclick="closeModal('modalGoogleSheetsSync')" class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg flex flex-col z-10 overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Đồng bộ Google Sheets & Cloud Drive</h3>
+          <p class="text-xs text-slate-500">Lưu trữ 2 chiều an toàn trên bảng tính Google</p>
+        </div>
+        <button onclick="closeModal('modalGoogleSheetsSync')" class="p-1.5 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+              <i data-lucide="check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-emerald-950 text-sm">Google Sheets đã kết nối thành công</h4>
+              <p class="text-xs text-emerald-700">Spreadsheet: HR Management App Concept</p>
+            </div>
+          </div>
+          <a href="https://docs.google.com/spreadsheets/d/12DE0YcDFU-4gw7z2K-d4SXxVRRXwvtGYtZrySLEEt0E/edit?usp=drivesdk" target="_blank" class="px-3 py-1.5 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5">
+            <span>Mở Sheet</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <div class="space-y-2 text-xs text-slate-600">
+          <p class="font-bold text-slate-800">10 Sheet dữ liệu tự động đồng bộ theo từng cột danh mục bên trái:</p>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px] p-2 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 1. Tổng quan & Báo cáo</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 2. Nhân viên (85)</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 3. Phòng ban (12)</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 4. Chi nhánh (3)</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 5. Vị trí - Chức danh (31)</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 6. Nghỉ phép</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 7. Quỹ phép năm (76)</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 8. Khen thưởng - Kỷ luật</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 9. Lịch sử công tác</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 10. Người dùng & Phân quyền</span>
+          </div>
+          <p>• Dữ liệu trên Google Sheets sẽ tự động cập nhật ngay khi bạn thêm, sửa, điều chuyển, ký hợp đồng hoặc phê duyệt đơn nghỉ.</p>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button onclick="closeModal('modalGoogleSheetsSync')" class="px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">Đóng</button>
+          <button onclick="syncGoogleSheetsNow()" id="modalSyncBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span>Đồng bộ ngay 10 Sheet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. MODAL USER FORM & GRANULAR PERMISSIONS MATRIX -->
+  <div id="modalUserForm" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal('modalUserForm')"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden z-10 animate-fade-in border border-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="modalUserTitle" class="text-base sm:text-lg font-bold text-slate-900">Thêm người dùng & Phân quyền chi tiết</h3>
+            <p id="modalUserSubtitle" class="text-xs text-slate-500">Tài khoản đăng nhập, phạm vi truy cập dữ liệu và ma trận phân quyền 9 danh mục</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalUserForm')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <form id="formUserModal" onsubmit="handleUserFormSubmit(event)" class="flex-1 overflow-y-auto p-6 space-y-6">
+        <input type="hidden" id="userFormId" value="">
+
+        <!-- Section 1: Basic Information & Account Credentials -->
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <i data-lucide="user" class="w-4 h-4 text-brand-600"></i>
+              <span>1. Thông tin tài khoản & Phạm vi dữ liệu</span>
+            </h4>
+            <span class="text-[11px] text-slate-400">Các trường dấu (*) là bắt buộc</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Full Name -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên *</label>
+              <input type="text" id="userFormName" required placeholder="VD: Nguyễn Văn An" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+            </div>
+
+            <!-- Username -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Tên đăng nhập (@username) *</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-xs font-semibold text-slate-400">@</span>
+                <input type="text" id="userFormUsername" required placeholder="nguyenvanan" class="w-full text-xs sm:text-sm pl-7 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu đăng nhập</label>
+              <div class="relative">
+                <input type="password" id="userFormPassword" placeholder="Mặc định: Asin@2026" class="w-full text-xs sm:text-sm px-3 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+                <button type="button" onclick="togglePasswordVisibility('userFormPassword')" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Email làm việc *</label>
+              <input type="email" id="userFormEmail" required placeholder="an.nv@danzia.vn" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+            </div>
+
+            <!-- Phone -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại</label>
+              <input type="text" id="userFormPhone" placeholder="0912 345 678" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+            </div>
+
+            <!-- Link with Employee Profile -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Liên kết hồ sơ nhân viên</label>
+              <select id="userFormLinkedEmployee" onchange="handleSelectLinkedEmployee(this.value)" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="">— Không liên kết —</option>
+                <!-- Populated dynamically from state.employees -->
+              </select>
+            </div>
+
+            <!-- Data Scope -->
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Phạm vi truy cập dữ liệu (Chi nhánh / Phòng ban)</label>
+              <select id="userFormScope" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="all">🌐 Tất cả chi nhánh & Phòng ban (Toàn quyền chi nhánh)</option>
+                <option value="branch_HN">🏢 Trụ sở chính Hà Nội (Chỉ xem/quản lý nhân sự HN)</option>
+                <option value="branch_HCM">🏢 Chi nhánh TP. Hồ Chí Minh (Chỉ xem/quản lý nhân sự HCM)</option>
+                <option value="branch_DN">🏢 Chi nhánh Đà Nẵng (Chỉ xem/quản lý nhân sự ĐN)</option>
+                <option value="dept">📁 Phòng ban trực thuộc (Theo nhân viên liên kết)</option>
+              </select>
+              <p class="text-[11px] text-slate-400 mt-1">Giới hạn danh sách nhân viên, phòng ban và báo cáo mà tài khoản này được phép thấy.</p>
+            </div>
+
+            <!-- Account Status -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Trạng thái tài khoản</label>
+              <select id="userFormStatus" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                <option value="active">🟢 Đang hoạt động</option>
+                <option value="locked">🔴 Đã khóa (Không thể đăng nhập)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Granular Permissions Matrix -->
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 mb-3 gap-2">
+            <div>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                <i data-lucide="key" class="w-4 h-4 text-brand-600"></i>
+                <span>2. Ma trận phân quyền chi tiết (9 Danh mục x 6 Mức độ tiếp cận)</span>
+              </h4>
+              <p class="text-[11px] text-slate-400">Chọn vai trò mẫu hoặc tùy chỉnh từng quyền xem, thêm, sửa, xóa, duyệt và xuất dữ liệu</p>
+            </div>
+
+            <!-- Presets Selector -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Vai trò mẫu:</span>
+              <select id="userFormRolePreset" onchange="applyRolePreset(this.value)" class="text-xs font-semibold px-3 py-1.5 bg-brand-50 text-brand-700 border border-brand-200 rounded-lg focus:outline-none">
+                <option value="admin">Quản trị viên (Admin - Full 100%)</option>
+                <option value="hr">Nhân sự (HR - Quản lý nhân sự)</option>
+                <option value="manager">Trưởng phòng (Manager - Duyệt phép)</option>
+                <option value="viewer">Chỉ xem (Viewer - Xem dữ liệu)</option>
+                <option value="custom">Tùy chỉnh (Custom Matrix)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Toggle Actions -->
+          <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs mb-3">
+            <span class="font-medium text-slate-600 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+              Thao tác nhanh trên ma trận:
+            </span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="toggleAllPermissions(true)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-md font-medium text-[11px] transition">
+                ✓ Chọn tất cả
+              </button>
+              <button type="button" onclick="toggleAllPermissions(false)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-md font-medium text-[11px] transition">
+                ✕ Bỏ chọn tất cả
+              </button>
+              <button type="button" onclick="toggleOnlyViewPermissions()" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-brand-600 border border-brand-200 rounded-md font-medium text-[11px] transition">
+                👁 Chỉ chọn Xem
+              </button>
+            </div>
+          </div>
+
+          <!-- Permissions Matrix Table -->
+          <div class="border border-slate-200 rounded-xl overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                <tr>
+                  <th class="p-2.5 w-44">Danh mục chức năng</th>
+                  <th class="p-2.5 text-center">
+                    <label class="cursor-pointer inline-flex items-center gap-1" title="Bật/Tắt cột Xem">
+                      <input type="checkbox" onchange="toggleColumnPermissions('view', this.checked)" class="rounded text-brand-600 focus:ring-0">
+                      <span>Xem</span>
+                    </label>
+                  </th>
+                  <th class="p-2.5 text-center">
+                    <label class="cursor-pointer inline-flex items-center gap-1" title="Bật/Tắt cột Thêm">
+                      <input type="checkbox" onchange="toggleColumnPermissions('create', this.checked)" class="rounded text-brand-600 focus:ring-0">
+                      <span>Thêm</span>
+                    </label>
+                  </th>
+                  <th class="p-2.5 text-center">
+                    <label class="cursor-pointer inline-flex items-center gap-1" title="Bật/Tắt cột Sửa">
+                      <input type="checkbox" onchange="toggleColumnPermissions('edit', this.checked)" class="rounded text-brand-600 focus:ring-0">
+                      <span>Sửa</span>
+                    </label>
+                  </th>
+                  <th class="p-2.5 text-center">
+                    <label class="cursor-pointer inline-flex items-center gap-1" title="Bật/Tắt cột Xóa">
+                      <input type="checkbox" onchange="toggleColumnPermissions('delete', this.checked)" class="rounded text-brand-600 focus:ring-0">
+                      <span>Xóa</span>
+                    </label>
+                  </th>
+                  <th class="p-2.5 text-center">
+                    <label class="cursor-pointer inline-flex items-center gap-1" title="Bật/Tắt cột Duyệt">
+                      <input type="checkbox" onchange="toggleColumnPermissions('approve', this.checked)" class="rounded text-brand-600 focus:ring-0">
+                      <span>Duyệt</span>
+                    </label>
+                  </th>
+                  <th class="p-2.5 text-center">
+                    <label class="cursor-pointer inline-flex items-center gap-1" title="Bật/Tắt cột Xuất & Sync">
+                      <input type="checkbox" onchange="toggleColumnPermissions('export', this.checked)" class="rounded text-brand-600 focus:ring-0">
+                      <span>Xuất/Sync</span>
+                    </label>
+                  </th>
+                  <th class="p-2.5 text-center text-slate-400 font-normal">Cả dòng</th>
+                </tr>
+              </thead>
+              <tbody id="permissionsMatrixBody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamically rendered rows: Overview, Employees, Departments, Branches, Positions, Leaves, Reports, Users, Settings -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Modal Form Footer Actions -->
+        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400"></i>
+            Phân quyền có hiệu lực ngay lập tức và tự động đồng bộ sang Google Sheets
+          </p>
+          <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            <button type="button" onclick="closeModal('modalUserForm')" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs sm:text-sm font-medium transition">
+              Hủy bỏ
+            </button>
+            <button type="submit" id="saveUserBtn" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Lưu người dùng & Phân quyền</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 11. MODAL VIEW DETAILED PERMISSIONS (Xem nhanh ma trận quyền) -->
+  <div id="modalViewPermissions" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal('modalViewPermissions')"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-10 animate-fade-in border border-slate-100">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-3">
+          <div id="viewPermsAvatar" class="w-10 h-10 rounded-xl bg-brand-600 text-white font-bold flex items-center justify-center text-sm">
+            AD
+          </div>
+          <div>
+            <h3 id="viewPermsUserName" class="text-base font-bold text-slate-900">Chi tiết phân quyền người dùng</h3>
+            <p id="viewPermsUserRole" class="text-xs text-slate-500">Vai trò • Phạm vi dữ liệu</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalViewPermissions')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div id="viewPermsContent" class="space-y-3">
+          <!-- Populated dynamically via viewUserPermissions(userId) -->
+        </div>
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <button id="viewPermsEditBtn" class="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Chỉnh sửa người dùng này
+        </button>
+        <button onclick="closeModal('modalViewPermissions')" class="px-4 py-1.5 border border-slate-200 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- App Javascript -->
+  <script src="/js/app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

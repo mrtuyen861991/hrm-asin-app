@@ -1,0 +1,29 @@
+{
+  "name": "hrm-asin-app",
+  "version": "1.0.0",
+  "description": "ASIN GROUP - Phần mềm Quản lý Hồ sơ Nhân sự Toàn diện",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "sync": "node sync-google-sheets.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "hrm",
+    "human-resources",
+    "personnel-management",
+    "express",
+    "asin-group"
+  ],
+  "author": "Huu Tuyen",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "xlsx": "^0.18.5"
+  }
+}
